@@ -17,10 +17,8 @@ import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalCo
 import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts.seriesUri;
 
 import edu.mayo.kmdp.id.Term;
-import edu.mayo.kmdp.terms.ConceptScheme;
 import edu.mayo.kmdp.terms.v3.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
-import edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
