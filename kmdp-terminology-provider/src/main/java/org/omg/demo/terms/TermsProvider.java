@@ -13,9 +13,19 @@
  */
 package org.omg.demo.terms;
 
+import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts.SCHEME_NAME;
+import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts.seriesUri;
+
+import edu.mayo.kmdp.id.Term;
+import edu.mayo.kmdp.terms.ConceptScheme;
 import edu.mayo.kmdp.terms.v3.server.TermsApiInternal;
+import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
+import edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import javax.inject.Named;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
@@ -24,16 +34,26 @@ import org.omg.spec.api4kp._1_0.services.KPServer;
 
 @Named
 @KPServer
-public class TermsServer implements TermsApiInternal {
+public class TermsProvider implements TermsApiInternal {
 
   @Override
   public Answer<List<ConceptIdentifier>> getTerms(UUID vocabularyId, String versionTag,
       String label) {
-    return Answer.unsupported();
+    return Answer.of(
+        Arrays.stream(
+            edu.mayo.ontology.taxonomies.propositionalconcepts._20200109.PropositionalConcepts
+                .values())
+            .map(Term::asConcept)
+            .collect(Collectors.toList())
+    );
   }
 
   @Override
   public Answer<List<Pointer>> listTerminologies() {
-    return Answer.unsupported();
+    Pointer ptr = new Pointer()
+        .withName(SCHEME_NAME)
+        .withType(KnowledgeAssetTypeSeries.Value_Set.getConceptId())
+        .withEntityRef(seriesUri);
+    return Answer.of(Collections.singletonList(ptr));
   }
 }
