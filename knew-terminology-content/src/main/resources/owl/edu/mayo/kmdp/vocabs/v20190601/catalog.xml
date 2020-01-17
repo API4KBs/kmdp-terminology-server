@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <uri id="CSO_2019061"
+    uri="cso.rdf"
+    name="http://ontology.mayo.edu/ontologies/20190601/clinicalsituationontology/"/>
+
+  <uri id="SCV_20190601"
+    uri="../sco_20190601.skos.rdf"
+    name="https://ontology.mayo.edu/taxonomies/clinicalsituations/20190601/"/>
+
+  <nextCatalog catalog="../catalog.xml" />
+
+</catalog>

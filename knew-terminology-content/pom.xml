@@ -1,0 +1,444 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <parent>
+    <artifactId>kmdp-terminology-broker</artifactId>
+    <groupId>edu.mayo.kmdp</groupId>
+    <version>3.6.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>edu.mayo.kmdp.kdcaci.knew</groupId>
+  <artifactId>knew-terminology-content</artifactId>
+
+  <name>K'nEW :: Terminology, Ontology and Vocabulary Content</name>
+
+  <properties>
+    <packageName>edu.mayo.kmdp.vocabs</packageName>
+    <s>${file.separator}</s>
+    <packageDir>edu${s}mayo${s}kmdp${s}vocabs</packageDir>
+    <ontologyDir>${project.basedir}${s}src${s}main${s}resources${s}owl${s}${packageDir}</ontologyDir>
+    <skosDir>${project.build.directory}${s}generated-sources${s}skos${s}${packageDir}</skosDir>
+  </properties>
+
+
+  <dependencies>
+
+    <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-terminology-model</artifactId>
+      <version>${kmdp.impl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-datatype</artifactId>
+      <version>${kmdp.impl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-terminology-content</artifactId>
+      <version>${kmdp.impl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.omg.spec</groupId>
+      <artifactId>API4KP</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>de.escalon.hypermedia</groupId>
+      <artifactId>hydra-jsonld</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.reflections</groupId>
+      <artifactId>reflections</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-test-utils</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.fasterxml.jackson.dataformat</groupId>
+      <artifactId>jackson-dataformat-xml</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.owlapi</groupId>
+      <artifactId>owlapi-api</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.owlapi</groupId>
+      <artifactId>owlapi-apibinding</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.stanford.protege</groupId>
+      <artifactId>org.protege.xmlcatalog</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-asset-metadata</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+
+    <resources>
+      <resource>
+        <directory>target/generated-sources</directory>
+        <includes>
+          <include>**/*.xjb</include>
+          <include>**/*.xsd</include>
+          <include>**/*.rdf</include>
+          <include>**/*catalog*.xml</include>
+          <include>**/*.yaml</include>
+        </includes>
+      </resource>
+      <resource>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
+
+    <plugins>
+
+      <plugin>
+        <groupId>edu.mayo.kmdp</groupId>
+        <artifactId>terms-owl-to-skos-plugin</artifactId>
+        <version>${kmdp.impl.version.resolved}</version>
+        <configuration>
+          <outputDirectory>${skosDir}</outputDirectory>
+          <catalogURLs>
+            <catalogURL>file:///${ontologyDir}${s}LATEST${s}catalog.xml</catalogURL>
+            <catalogURL>file:///${ontologyDir}${s}v20190801${s}catalog.xml</catalogURL>
+          </catalogURLs>
+          <profile>SKOS</profile>
+        </configuration>
+        <executions>
+
+          <execution>
+            <id>concrete-sco-skos</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>owl-to-skos</goal>
+            </goals>
+            <configuration>
+              <owlSourceURLs>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/SNAPSHOT/clinicalsituationontology/</owlSourceURL>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/20200109/clinicalsituationontology/</owlSourceURL>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/20191201/clinicalsituationontology/</owlSourceURL>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/20190801/clinicalsituationontology/</owlSourceURL>
+<!--                <owlSourceURL>http://ontology.mayo.edu/ontologies/20190601/clinicalsituationontology/</owlSourceURL>-->
+              </owlSourceURLs>
+
+              <owlNamespace>http://ontology.mayo.edu/ontologies/clinicalsituationontology/</owlNamespace>
+              <targetURI>http://snomed.info/id/243796009</targetURI>
+              <minDepth>1</minDepth>
+
+              <skosNamespace>https://ontology.mayo.edu/taxonomies/clinicalsituations</skosNamespace>
+              <schemeName>ClinicalSituations</schemeName>
+              <topConceptName>ClinicalSituation</topConceptName>
+
+              <catalogURLs>
+                <catalogURL>file:///${ontologyDir}${s}LATEST${s}catalog.xml</catalogURL>
+                <catalogURL>file:///${ontologyDir}${s}v20200109${s}catalog.xml</catalogURL>
+                <catalogURL>file:///${ontologyDir}${s}v20191201${s}catalog.xml</catalogURL>
+                <catalogURL>file:///${ontologyDir}${s}v20190801${s}catalog.xml</catalogURL>
+<!--                <catalogURL>file:///${ontologyDir}${s}v20190601${s}catalog.xml</catalogURL>-->
+              </catalogURLs>
+
+              <skosOutputFiles>
+                <skosOutputFile>sco.skos.rdf</skosOutputFile>
+                <skosOutputFile>sco_20200109.skos.rdf</skosOutputFile>
+                <skosOutputFile>sco_20191201.skos.rdf</skosOutputFile>
+                <skosOutputFile>sco_20190801.skos.rdf</skosOutputFile>
+<!--                <skosOutputFile>sco_20190601.skos.rdf</skosOutputFile>-->
+              </skosOutputFiles>
+            </configuration>
+          </execution>
+
+          <execution>
+            <id>tco-skos</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>owl-to-skos</goal>
+            </goals>
+            <configuration>
+              <owlSourceURLs>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/SNAPSHOT/clinicaltaskontology/</owlSourceURL>
+                <owlSourceURL>http://ontology.mayo.edu/ontologies/20190801/clinicaltaskontology/</owlSourceURL>
+              </owlSourceURLs>
+
+              <owlNamespace>http://ontology.mayo.edu/ontologies/clinicaltaskontology/</owlNamespace>
+              <targetURI>http://ontology.mayo.edu/ontologies/clinicaltaskontology/Task</targetURI>
+              <minDepth>1</minDepth>
+
+              <skosNamespace>https://ontology.mayo.edu/taxonomies/ClinicalTasks</skosNamespace>
+              <schemeName>ClinicalTasks</schemeName>
+              <topConceptName>ClinicalTask</topConceptName>
+
+              <skosOutputFiles>
+                <skosOutputFile>tco.skos.rdf</skosOutputFile>
+                <skosOutputFile>tco_20190801.skos.rdf</skosOutputFile>
+              </skosOutputFiles>
+            </configuration>
+          </execution>
+
+
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>org.omg.spec</groupId>
+            <artifactId>API4KP</artifactId>
+            <version>${api4kp.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>edu.mayo.kmdp</groupId>
+            <artifactId>kmdp-terminology-model</artifactId>
+            <version>${kmdp.impl.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>edu.mayo.kmdp</groupId>
+            <artifactId>kmdp-terminology-content</artifactId>
+            <version>${kmdp.impl.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${skosDir}</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>${project.basedir}${s}src${s}main${s}resources${s}skos${s}${packageDir}</directory>
+                  <filtering>true</filtering>
+                </resource>
+                <resource>
+                  <directory>${project.basedir}${s}src${s}main${s}resources${s}owl${s}${packageDir}</directory>
+                  <includes>
+                    <include>**/pcv*.*</include>
+                    <include>**/cso*.*</include>
+                    <include>skos.rdf</include>
+                    <include>dct.rdf</include>
+                    <include>**/catalog.xml</include>
+                  </includes>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+
+      <plugin>
+        <groupId>edu.mayo.kmdp</groupId>
+        <artifactId>terms-generator-plugin</artifactId>
+        <version>${kmdp.impl.version.resolved}</version>
+        <configuration>
+          <outputDirectory>${skosDir}</outputDirectory>
+          <jaxb>true</jaxb>
+          <jsonld>true</jsonld>
+          <json>true</json>
+          <versionPattern>.*\/(.*)\/$</versionPattern>
+          <catalogNamespace>https://ontology.mayo.edu/taxonomies/</catalogNamespace>
+          <jsonAdapter>edu.mayo.kmdp.terms.adapters.json.URITermsJsonAdapter</jsonAdapter>
+        </configuration>
+        <executions>
+          <execution>
+            <id>gen-pcv</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-terms</goal>
+            </goals>
+            <configuration>
+              <owlFiles>
+                <owlFile>${skosDir}/LATEST/pcv.skos.ttl</owlFile>
+                <owlFile>${skosDir}/v20200109/pcv.skos.ttl</owlFile>
+                <owlFile>${skosDir}/v20191201/pcv.skos.ttl</owlFile>
+                <owlFile>${skosDir}/v20190801/pcv.skos.ttl</owlFile>
+<!--                <owlFile>${skosDir}/v20190601/pcv.skos.rdf</owlFile>-->
+              </owlFiles>
+              <enforceClosure>true</enforceClosure>
+              <closureMode>INCLUDES</closureMode>
+              <ignoredIRIs>
+                <ignoredIRI>http://datashapes.org/dash</ignoredIRI>
+                <ignoredIRI>http://datashapes.org/graphql</ignoredIRI>
+                <ignoredIRI>http://topbraid.org/skos.shapes</ignoredIRI>
+                <ignoredIRI>http://topbraid.org/imported</ignoredIRI>
+                <ignoredIRI>http://topbraid.org/tosh</ignoredIRI>
+                <ignoredIRI>http://purl.org/dc/terms/</ignoredIRI>
+                <ignoredIRI>http://ontology.mayo.edu/ontologies/clinicalsituationontology/</ignoredIRI>
+              </ignoredIRIs>
+              <sourceCatalogPaths>
+                <sourceCatalogPath>${skosDir}/LATEST/catalog.xml</sourceCatalogPath>
+                <sourceCatalogPath>${skosDir}/v20200109/catalog.xml</sourceCatalogPath>
+                <sourceCatalogPath>${skosDir}/v20191201/catalog.xml</sourceCatalogPath>
+                <sourceCatalogPath>${skosDir}/v20190801/catalog.xml</sourceCatalogPath>
+<!--                <sourceCatalogPath>${skosDir}/v20190601/catalog.xml</sourceCatalogPath>-->
+              </sourceCatalogPaths>
+              <catalogName>kmdp-ext-terms-skos-catalog.xml</catalogName>
+            </configuration>
+          </execution>
+
+
+          <execution>
+            <id>gen1</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>generate-terms</goal>
+            </goals>
+            <configuration>
+              <owlFiles>
+                <owlFile>${skosDir}/tco.skos.rdf</owlFile>
+                <owlFile>${skosDir}/tco_20190801.skos.rdf</owlFile>
+                <!-- Generated as a 'side effect' because PCV imports it -->
+                <!--                <owlFile>${skosDir}/sco.skos.rdf</owlFile>-->
+              </owlFiles>
+              <sourceCatalogPaths>
+                <sourceCatalogPath>${skosDir}/LATEST/catalog.xml</sourceCatalogPath>
+                <sourceCatalogPath>${skosDir}/v20190801/catalog.xml</sourceCatalogPath>
+              </sourceCatalogPaths>
+              <catalogName>kmdp-ext-terms-catalog.xml</catalogName>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>edu.mayo.kmdp</groupId>
+            <artifactId>kmdp-terminology-model</artifactId>
+            <version>${kmdp.impl.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>edu.mayo.kmdp</groupId>
+            <artifactId>kmdp-terminology-content</artifactId>
+            <version>${kmdp.impl.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>unpack-xslt</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+
+                  <groupId>edu.mayo.kmdp</groupId>
+                  <artifactId>xsd-yamls-xslt-translator</artifactId>
+                  <version>${kmdp.impl.version.resolved}</version>
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}</outputDirectory>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+          <execution>
+            <id>include-xsds</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>unpack</goal>
+            </goals>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>edu.mayo.kmdp</groupId>
+                  <artifactId>kmdp-datatype</artifactId>
+                  <version>${kmdp.impl.version.resolved}</version>
+
+                  <type>jar</type>
+                  <overWrite>false</overWrite>
+                  <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
+                  <includes>**/*.xsd,**/*catalog*.xml</includes>
+                </artifactItem>
+              </artifactItems>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>xml-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>generate-yaml</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>transform</goal>
+            </goals>
+            <configuration>
+              <transformationSets>
+                <transformationSet>
+                  <dir>${project.build.directory}/generated-sources/xsd</dir>
+                  <includes>**/*.xsd</includes>
+                  <excludes>**/*.openapi.xsd</excludes>
+                  <stylesheet>${project.build.directory}/edu/mayo/kmdp/xsd/xsd-to-yamls.xsl</stylesheet>
+                  <fileMappers>
+                    <fileMapper
+                      implementation="org.codehaus.plexus.components.io.filemappers.FileExtensionMapper">
+                      <targetExtension>.yaml</targetExtension>
+                    </fileMapper>
+                  </fileMappers>
+                  <outputDir>${project.build.directory}/generated-sources/yaml</outputDir>
+                  <parameters>
+                    <parameter>
+                      <name>CATALOGS</name>
+                      <value>file:/${project.build.directory}/generated-sources/xsd/api4kp-catalog.xml</value>
+                    </parameter>
+                  </parameters>
+                </transformationSet>
+              </transformationSets>
+            </configuration>
+          </execution>
+        </executions>
+
+        <dependencies>
+          <dependency>
+            <groupId>net.sf.saxon</groupId>
+            <artifactId>Saxon-HE</artifactId>
+            <version>${saxon.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <includes>
+            <include>**/*</include>
+          </includes>
+        </configuration>
+      </plugin>
+
+
+    </plugins>
+  </build>
+
+
+</project>

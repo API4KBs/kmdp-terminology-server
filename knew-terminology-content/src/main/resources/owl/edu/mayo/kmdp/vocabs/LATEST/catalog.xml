@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<catalog prefer="public" xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+
+  <uri id="DMN"
+    uri="decisionmodels.owl.rdf"
+    name="http://ontology.mayo.edu/ontologies/SNAPSHOT/decisionmodels/"/>
+
+  <uri id="TCO"
+    uri="tco.owl.rdf"
+    name="http://ontology.mayo.edu/ontologies/SNAPSHOT/clinicaltaskontology/"/>
+
+  <uri id="CSO"
+    uri="cso.ttl"
+    name="http://ontology.mayo.edu/ontologies/SNAPSHOT/clinicalsituationontology/"/>
+
+  <uri id="CCG"
+    uri="ccg.owl.rdf"
+    name="http://ontology.mayo.edu/ontologies/SNAPSHOT/CCG/"/>
+
+  <uri id="CKAO"
+    uri="/ontologies/API4KP/LATEST/informative/ckao.rdf"
+    name="http://ontology.mayo.edu/ontologies/SNAPSHOT/clinicalknowledgeassets/"/>
+
+  <uri id="KAO"
+    uri="/ontologies/API4KP/LATEST/api4kp-kao.rdf"
+    name="https://www.omg.org/spec/API4KP/SNAPSHOT/api4kp-kao/"/>
+
+  <uri id="API4KP"
+    uri="/ontologies/API4KP/LATEST/api4kp.rdf"
+    name="https://www.omg.org/spec/API4KP/SNAPSHOT/api4kp/"/>
+
+  <uri id="SCV"
+    uri="../sco.skos.rdf"
+    name="https://ontology.mayo.edu/taxonomies/clinicalsituations/SNAPSHOT/"/>
+
+  <nextCatalog catalog="../catalog.xml"/>
+
+</catalog>
