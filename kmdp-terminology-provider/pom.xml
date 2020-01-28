@@ -20,7 +20,7 @@
     <dependency>
       <groupId>edu.mayo.kmdp.kdcaci.knew</groupId>
       <artifactId>knew-terminology-content</artifactId>
-      <version>${project.version}</version>
+      <version>${clinical.terms.version}</version>
     </dependency>
 
     <dependency>
