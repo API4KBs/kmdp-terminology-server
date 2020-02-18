@@ -13,45 +13,118 @@
  */
 package org.omg.demo.terms;
 
-import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts.SCHEME_NAME;
-import static edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts.seriesUri;
-
 import edu.mayo.kmdp.id.Term;
+import edu.mayo.kmdp.terms.ControlledTerm;
 import edu.mayo.kmdp.terms.v3.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import javax.inject.Named;
+import org.apache.commons.collections.map.LinkedMap;
+import org.apache.commons.collections.map.MultiKeyMap;
+
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
+import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.omg.spec.api4kp._1_0.identifiers.Pointer;
+import org.omg.spec.api4kp._1_0.identifiers.URIIdentifier;
 import org.omg.spec.api4kp._1_0.services.KPServer;
+import org.reflections.Reflections;
+
+import javax.inject.Named;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Named
 @KPServer
 public class TermsProvider implements TermsApiInternal {
 
+  private MultiKeyMap multiKeyMap;
+  private HashMap<String, URI> namesIds;
+
+  public TermsProvider()  {
+    super();
+
+    multiKeyMap = new MultiKeyMap();
+    namesIds = new HashMap<>();
+
+    try {
+      scan();
+    } catch (IllegalAccessException | ClassNotFoundException | NoSuchMethodException | InvocationTargetException  e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+
+  protected void scan() throws IllegalAccessException, ClassNotFoundException, NoSuchMethodException, InvocationTargetException {
+    multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
+      Reflections reflections = new Reflections("edu.mayo.ontology.taxonomies");
+      Set<Class<? extends ControlledTerm>> subTypes = reflections.getSubTypesOf(ControlledTerm.class);
+
+      for(Class subtype:subTypes)  {
+        Field namespace = null;
+        try {
+          namespace = subtype.getField("namespace");
+
+          String name = subtype.getName();
+          String version = ((NamespaceIdentifier)namespace.get(null)).getVersion();
+          String schemeId = ((NamespaceIdentifier)namespace.get(null)).getTag();
+          URI seriesId = ((NamespaceIdentifier)namespace.get(null)).getId();
+
+          Class cls = Class.forName(name);
+          Object obj = null;
+          try {
+            obj = cls.newInstance();
+          } catch (InstantiationException e) {
+            //e.printStackTrace();
+          }
+
+          Method method = cls.getDeclaredMethod("values");
+          List<Term> terms =  Arrays.asList((Term[])method.invoke(obj, null));
+
+          namesIds.put(name, seriesId);
+          multiKeyMap.put(UUID.fromString(schemeId), version, terms);
+
+        } catch (NoSuchFieldException e) {
+
+        }
+      }
+  }
+
   @Override
-  public Answer<List<ConceptIdentifier>> getTerms(UUID vocabularyId, String versionTag,
-      String label) {
+  public Answer<List<ConceptIdentifier>> getTerms(UUID vocabularyId, String versionTag, String label) {
+
+    //  one of the terms has a null.  looking into
+//    List<Term> terms = doGetTerms(vocabularyId, versionTag);
+//    if(terms == null)  {
+//      System.out.println("it is null");
+//    }
+
     return Answer.of(
-        Arrays.stream(
-            edu.mayo.ontology.taxonomies.propositionalconcepts._20200109.PropositionalConcepts
-                .values())
-            .map(Term::asConcept)
-            .collect(Collectors.toList())
+            this.doGetTerms(vocabularyId, versionTag).stream()
+                    .map(Term::asConcept)
+                    .collect(Collectors.toList())
     );
+  }
+
+  protected List<Term> doGetTerms(UUID vocabularyId, String versionTag) {
+    return (List<Term>)multiKeyMap.get(vocabularyId, versionTag);
   }
 
   @Override
   public Answer<List<Pointer>> listTerminologies() {
-    Pointer ptr = new Pointer()
-        .withName(SCHEME_NAME)
-        .withType(KnowledgeAssetTypeSeries.Value_Set.getConceptId())
-        .withEntityRef(seriesUri);
-    return Answer.of(Collections.singletonList(ptr));
+    ArrayList<Pointer> pointers = new ArrayList<>();
+    Collection<String> names = namesIds.keySet();
+
+    for(String name:names) {
+      Pointer ptr = new Pointer()
+              .withName(name)
+              .withType(KnowledgeAssetTypeSeries.Value_Set.getConceptId())
+              .withEntityRef((new URIIdentifier()).withUri(namesIds.get(name)));
+      pointers.add(ptr);
+    }
+
+    return Answer.of(pointers);
   }
 }
