@@ -15,26 +15,31 @@ package org.omg.demo.terms;
 
 import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.ControlledTerm;
-import edu.mayo.kmdp.terms.v3.server.TermsApiInternal;
+import edu.mayo.kmdp.terms.v4.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.inject.Named;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
-
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
 import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.omg.spec.api4kp._1_0.identifiers.Pointer;
 import org.omg.spec.api4kp._1_0.identifiers.URIIdentifier;
 import org.omg.spec.api4kp._1_0.services.KPServer;
+import org.omg.spec.api4kp._1_0.services.KnowledgeCarrier;
 import org.reflections.Reflections;
-
-import javax.inject.Named;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Named
 @KPServer
@@ -93,23 +98,30 @@ public class TermsProvider implements TermsApiInternal {
   }
 
   @Override
+  public Answer<ConceptIdentifier> getTerm(UUID uuid, String s, String s1) {
+    return Answer.unsupported();
+  }
+
   public Answer<List<ConceptIdentifier>> getTerms(UUID vocabularyId, String versionTag, String label) {
-
-    //  one of the terms has a null.  looking into
-//    List<Term> terms = doGetTerms(vocabularyId, versionTag);
-//    if(terms == null)  {
-//      System.out.println("it is null");
-//    }
-
     return Answer.of(
             this.doGetTerms(vocabularyId, versionTag).stream()
                     .map(Term::asConcept)
-                    .collect(Collectors.toList())
-    );
+                    .collect(Collectors.toList()));
   }
+
 
   protected List<Term> doGetTerms(UUID vocabularyId, String versionTag) {
     return (List<Term>)multiKeyMap.get(vocabularyId, versionTag);
+  }
+
+  @Override
+  public Answer<KnowledgeCarrier> getVocabulary(UUID uuid, String s, String s1) {
+    return Answer.unsupported();
+  }
+
+  @Override
+  public Answer<Void> isMember(UUID uuid, String s, String s1) {
+    return Answer.unsupported();
   }
 
   @Override
@@ -126,5 +138,10 @@ public class TermsProvider implements TermsApiInternal {
     }
 
     return Answer.of(pointers);
+  }
+
+  @Override
+  public Answer<Void> relatesTo(UUID uuid, String s, String s1, String s2) {
+    return Answer.unsupported();
   }
 }
