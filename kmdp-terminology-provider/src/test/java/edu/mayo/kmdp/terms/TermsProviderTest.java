@@ -54,7 +54,7 @@ public class TermsProviderTest {
   void testGetTerms_PCvBad() {
     assertThrows(NullPointerException.class,
             ()->{Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
-            "20191208", "");
+                    "20191208", "");
             });
   }
 
@@ -63,9 +63,9 @@ public class TermsProviderTest {
    */
   @Test
   void testGetTerms_KAv1() {
-      Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
-              "20190801", "");
-      assertEquals(38, answer.get().size());
+    Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
+            "20190801", "");
+    assertEquals(38, answer.get().size());
   }
 
   /**
