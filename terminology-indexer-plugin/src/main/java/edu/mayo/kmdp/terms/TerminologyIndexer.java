@@ -11,19 +11,26 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+<<<<<<< HEAD
 <<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 package edu.mayo.kmdp.terms;
 =======
 package org.omg.demo.terms;
 >>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+package edu.mayo.kmdp.terms;
+>>>>>>> File path now being correctly set.  Added documentation
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+<<<<<<< HEAD
 <<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 =======
 import edu.mayo.kmdp.terms.ControlledTerm;
 >>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+>>>>>>> File path now being correctly set.  Added documentation
 import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -35,19 +42,29 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
+<<<<<<< HEAD
 <<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
  * This class reads the terminology files for values which are defined in the TerminologyModel.
  * It outputs those values in a json file.
 =======
  *
 >>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+ * This class reads the terminology files for values defined in the TerminologyModel.
+ * It outputs those values in a json file.
+>>>>>>> File path now being correctly set.  Added documentation
  */
 public class TerminologyIndexer {
   private static Logger logger = LoggerFactory.getLogger(TerminologyIndexer.class);
 
   /**
    *  All the terminologies read from the taxonomies package
+<<<<<<< HEAD
    */
+=======
+    */
+
+>>>>>>> File path now being correctly set.  Added documentation
   Collection<TerminologyModel> terminologyModels;
 
   public TerminologyIndexer()  {
@@ -66,12 +83,19 @@ public class TerminologyIndexer {
   /**
    * Gets the files and stores the terminology metadata as JSON Objects.
    * Write the output file in the path location.
+<<<<<<< HEAD
    * The method is called by the provider pom using mojo execute.
+=======
+>>>>>>> File path now being correctly set.  Added documentation
    * @param path the path for the output file
    */
   public void execute(String path) {
     try {
+<<<<<<< HEAD
       readFilesToFindTerminologies();
+=======
+      scan();
+>>>>>>> File path now being correctly set.  Added documentation
 
       ObjectMapper mapper = new ObjectMapper();
       ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
@@ -82,17 +106,27 @@ public class TerminologyIndexer {
 
     } catch (IOException | IllegalAccessException e) {
         logger.error(e.getMessage(),e);
+<<<<<<< HEAD
         throw new RuntimeException(e);
+=======
+      throw new RuntimeException(e);
+>>>>>>> File path now being correctly set.  Added documentation
     }
   }
 
   /**
    * Read the files and determine which is a terminology.
+<<<<<<< HEAD
    * For each of the terminologies, get the metadata and store as TerminologyModel.
    * Store all the terminologies in a Collection
    * @throws IllegalAccessException if there are issues getting the metadata from the file
    */
   protected void readFilesToFindTerminologies() throws IllegalAccessException {
+=======
+   * @throws IllegalAccessException
+   */
+  protected void scan() throws IllegalAccessException {
+>>>>>>> File path now being correctly set.  Added documentation
     terminologyModels = new ArrayList<>();
 
     // Get the taxonomy files that extend ControlledTerm
@@ -125,6 +159,7 @@ public class TerminologyIndexer {
     }
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 =======
   public static void main(String... args) {
@@ -148,4 +183,6 @@ public class TerminologyIndexer {
     }
   }
 >>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+>>>>>>> File path now being correctly set.  Added documentation
 }

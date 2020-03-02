@@ -1,7 +1,10 @@
 package edu.mayo.kmdp.terms;
 
 import org.junit.jupiter.api.Test;
+<<<<<<< HEAD
 import org.junit.jupiter.api.Assertions;
+=======
+>>>>>>> File path now being correctly set.  Added documentation
 
 /**
  * Tests for the retrieval of terminologies and the json output file.

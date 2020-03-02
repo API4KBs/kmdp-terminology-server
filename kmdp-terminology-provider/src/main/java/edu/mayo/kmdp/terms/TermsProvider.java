@@ -12,10 +12,14 @@
  * the License.
  */
 <<<<<<< HEAD
+<<<<<<< HEAD
 package edu.mayo.kmdp.terms;
 =======
 package org.omg.demo.terms;
 >>>>>>> 33226 File path now being correctly set.  Added documentation.
+=======
+package edu.mayo.kmdp.terms;
+>>>>>>> File path now being correctly set.  Added documentation
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mayo.kmdp.id.Term;
@@ -53,12 +57,18 @@ public class TermsProvider implements TermsApiInternal {
 
   private static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
 <<<<<<< HEAD
+<<<<<<< HEAD
   /**
    *   A map using two keys to identify the TerminologyModel value
    */
   private static MultiKeyMap multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
 =======
   // a map using two keys to identify the TerminologyModel value
+=======
+  /**
+   *   A map using two keys to identify the TerminologyModel value
+   */
+>>>>>>> File path now being correctly set.  Added documentation
   private static MultiKeyMap multiKeyMap = readJson();
 >>>>>>> 33226 File path now being correctly set.  Added documentation.
 
@@ -66,6 +76,7 @@ public class TermsProvider implements TermsApiInternal {
     super();
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   /**
@@ -106,18 +117,24 @@ public class TermsProvider implements TermsApiInternal {
   }
 
 
+=======
+>>>>>>> File path now being correctly set.  Added documentation
   /**
    * Reads the JSON file and populate the TerminologyModels
    * @return MultiKeyMap where id and version are the keys and TerminologyModel is the value
    */
+<<<<<<< HEAD
   private static MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
 =======
+=======
+>>>>>>> File path now being correctly set.  Added documentation
   private static MultiKeyMap readJson() {
 >>>>>>> 33226 File path now being correctly set.  Added documentation.
     multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
     try {
       // json file is stored in the classes directory during the build
       TerminologyModel[] terminologies = new ObjectMapper().readValue(
+<<<<<<< HEAD
 <<<<<<< HEAD
               new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
 
@@ -126,6 +143,9 @@ public class TermsProvider implements TermsApiInternal {
         setTerminologyMetadata(terminology);
 =======
               new ClassPathResource("target/generated-sources/terminologies.json").getInputStream(), TerminologyModel[].class);
+=======
+              new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
+>>>>>>> File path now being correctly set.  Added documentation
 
       // for each terminology, set the metadata and terms
       for (TerminologyModel terminology : terminologies) {
@@ -178,7 +198,6 @@ public class TermsProvider implements TermsApiInternal {
     );
   }
 
-
   /**
    * Uses relection to retrieve the terms from the terminology class.
    * @param vocabularyId
@@ -203,6 +222,7 @@ public class TermsProvider implements TermsApiInternal {
     return terms;
   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 
   //  The methods below will be implemented at a later date.
@@ -281,6 +301,12 @@ public class TermsProvider implements TermsApiInternal {
 
 
 =======
+=======
+  /**
+   * Gets the infomation about each of the terminologies
+   * @return
+   */
+>>>>>>> File path now being correctly set.  Added documentation
   @Override
   public Answer<List<Pointer>> listTerminologies() {
     ArrayList<Pointer> pointers = new ArrayList<>();
@@ -296,6 +322,8 @@ public class TermsProvider implements TermsApiInternal {
     }
     return Answer.of(pointers);
   }
+
+  //  The methods below will be implemented at a later date.
 
   @Override
   public Answer<Void> relatesTo(UUID uuid, String s, String s1, String s2) {

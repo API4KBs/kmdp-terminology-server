@@ -50,6 +50,20 @@ public class TermsProviderTest {
   /**
    * Verify an exception is thrown if the version does not exist
    */
+<<<<<<< HEAD
+=======
+  @Test
+  void testGetTerms_PCvBad() {
+    assertThrows(NullPointerException.class,
+            ()->{Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+            "20191208", "");
+            });
+  }
+
+  /**
+   * Verify the number of terms found in a specific version of KnowledgeAssetType
+   */
+>>>>>>> File path now being correctly set.  Added documentation
   @Test
   void testGetTerms_PCvBad() {
     assertThrows(NullPointerException.class,
@@ -58,6 +72,7 @@ public class TermsProviderTest {
             });
   }
 
+<<<<<<< HEAD
   /**
    * Verify the number of terms found in a specific version of KnowledgeAssetType
    */
@@ -78,4 +93,6 @@ public class TermsProviderTest {
 
   }
 
+=======
+>>>>>>> File path now being correctly set.  Added documentation
 }
