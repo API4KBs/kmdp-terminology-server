@@ -11,11 +11,19 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+<<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 package edu.mayo.kmdp.terms;
+=======
+package org.omg.demo.terms;
+>>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+<<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+import edu.mayo.kmdp.terms.ControlledTerm;
+>>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.reflections.Reflections;
 import org.slf4j.Logger;
@@ -27,8 +35,12 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
+<<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
  * This class reads the terminology files for values which are defined in the TerminologyModel.
  * It outputs those values in a json file.
+=======
+ *
+>>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
  */
 public class TerminologyIndexer {
   private static Logger logger = LoggerFactory.getLogger(TerminologyIndexer.class);
@@ -113,4 +125,27 @@ public class TerminologyIndexer {
     }
   }
 
+<<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
+=======
+  public static void main(String... args) {
+    String path = args[0];
+    new TerminologyIndexer().execute(path);
+  }
+
+
+  public void execute(String path) {
+    try {
+      scan();
+
+      ObjectMapper mapper = new ObjectMapper();
+      ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
+
+      writer.writeValue(new File(path), terminologyModels);
+
+    } catch (IOException | IllegalAccessException e) {
+      logger.error(e.getMessage(),e);
+      throw new RuntimeException(e);
+    }
+  }
+>>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 }

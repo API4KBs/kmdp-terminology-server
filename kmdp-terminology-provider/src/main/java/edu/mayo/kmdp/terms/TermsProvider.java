@@ -11,7 +11,11 @@
  * or implied. See the License for the specific language governing permissions and limitations under
  * the License.
  */
+<<<<<<< HEAD
 package edu.mayo.kmdp.terms;
+=======
+package org.omg.demo.terms;
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mayo.kmdp.id.Term;
@@ -39,21 +43,30 @@ import java.util.stream.Collectors;
 @KPServer
 /**
  *  This class reads a terminology json file created by the terminology plugin.
+<<<<<<< HEAD
  *  If the tests fail, be sure to run parent build first so file is created in target/classes
+=======
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
  *  Terminology metadata and terms are available through services.
  */
 public class TermsProvider implements TermsApiInternal {
 
   private static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
+<<<<<<< HEAD
   /**
    *   A map using two keys to identify the TerminologyModel value
    */
   private static MultiKeyMap multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
+=======
+  // a map using two keys to identify the TerminologyModel value
+  private static MultiKeyMap multiKeyMap = readJson();
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
 
   public TermsProvider()  {
     super();
   }
 
+<<<<<<< HEAD
 
   /**
    * Gets a list of the terminologies as Pointers containing name and URI
@@ -98,15 +111,30 @@ public class TermsProvider implements TermsApiInternal {
    * @return MultiKeyMap where id and version are the keys and TerminologyModel is the value
    */
   private static MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
+=======
+  private static MultiKeyMap readJson() {
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
     multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
     try {
       // json file is stored in the classes directory during the build
       TerminologyModel[] terminologies = new ObjectMapper().readValue(
+<<<<<<< HEAD
               new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
 
       // for each terminology, set the metadata and terms
       for (TerminologyModel terminology : terminologies) {
         setTerminologyMetadata(terminology);
+=======
+              new ClassPathResource("target/generated-sources/terminologies.json").getInputStream(), TerminologyModel[].class);
+
+      // for each terminology, set the metadata and terms
+      for (TerminologyModel terminology : terminologies) {
+        UUID id = UUID.fromString(terminology.getSchemeId());
+        String version = terminology.getVersion();
+        multiKeyMap.put(id, version, terminology);
+        List<Term> terms = doGetTerms(id, version);
+        terminology.setTerms(terms);
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
       }
     }catch (Exception e) {
       logger.error(e.getMessage(),e);
@@ -115,6 +143,7 @@ public class TermsProvider implements TermsApiInternal {
     return multiKeyMap;
   }
 
+<<<<<<< HEAD
   /**
    * Set the terminology map using the terminologyId and version as keys.
    * Set the terms for the terminology.
@@ -138,6 +167,27 @@ public class TermsProvider implements TermsApiInternal {
    * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
    */
   private static List<Term> getTermsFromTerminologyClass(UUID vocabularyId, String versionTag) throws Exception {
+=======
+  @Override
+  public Answer<List<ConceptIdentifier>> getTerms(UUID vocabularyId, String versionTag, String label) {
+    TerminologyModel termModel = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
+    return Answer.of(
+            termModel.getTerms().stream()
+                    .map(Term::asConcept)
+                    .collect(Collectors.toList())
+    );
+  }
+
+
+  /**
+   * Uses relection to retrieve the terms from the terminology class.
+   * @param vocabularyId
+   * @param versionTag
+   * @return
+   * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
+   */
+  protected static List<Term> doGetTerms(UUID vocabularyId, String versionTag) throws Exception {
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
     TerminologyModel term = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
 
     Class cls = Class.forName(term.getName());
@@ -153,6 +203,7 @@ public class TermsProvider implements TermsApiInternal {
     return terms;
   }
 
+<<<<<<< HEAD
 
   //  The methods below will be implemented at a later date.
 
@@ -229,5 +280,42 @@ public class TermsProvider implements TermsApiInternal {
   }
 
 
+=======
+  @Override
+  public Answer<List<Pointer>> listTerminologies() {
+    ArrayList<Pointer> pointers = new ArrayList<>();
+
+    Collection<TerminologyModel> terms = multiKeyMap.values();
+
+    for(TerminologyModel term:terms) {
+      Pointer ptr = new Pointer()
+              .withName(term.getName())
+              .withType(KnowledgeAssetTypeSeries.Value_Set.getConceptId())
+              .withEntityRef((new URIIdentifier()).withUri(term.getSeriesId()));
+      pointers.add(ptr);
+    }
+    return Answer.of(pointers);
+  }
+
+  @Override
+  public Answer<Void> relatesTo(UUID uuid, String s, String s1, String s2) {
+    return null;
+  }
+
+  @Override
+  public Answer<KnowledgeCarrier> getVocabulary(UUID uuid, String s, String s1) {
+    return null;
+  }
+
+  @Override
+  public Answer<Void> isMember(UUID uuid, String s, String s1) {
+    return null;
+  }
+
+  @Override
+  public Answer<ConceptIdentifier> getTerm(UUID uuid, String s, String s1) {
+    return null;
+  }
+>>>>>>> 33226 File path now being correctly set.  Added documentation.
 
 }

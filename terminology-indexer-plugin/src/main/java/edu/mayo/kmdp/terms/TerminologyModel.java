@@ -1,4 +1,8 @@
+<<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyModel.java
 package edu.mayo.kmdp.terms;
+=======
+package org.omg.demo.terms;
+>>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyModel.java
 
 import java.net.URI;
 
