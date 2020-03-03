@@ -93,6 +93,19 @@ public class TermsProviderTest {
 
   }
 
+<<<<<<< HEAD
 =======
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+  /**
+   * Verify the number of terms found in a specific version of PropositionalConcepts
+   */
+  @Test
+  void testGetTerm_PCv1() {
+    Answer<ConceptIdentifier> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+            "20191201", "f212fc95-964d-3c1a-b75c-d4ff0269e18c");
+
+  }
+
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
 }

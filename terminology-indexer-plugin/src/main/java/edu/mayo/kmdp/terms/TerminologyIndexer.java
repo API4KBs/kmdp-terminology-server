@@ -43,6 +43,7 @@ import java.util.*;
 
 /**
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
  * This class reads the terminology files for values which are defined in the TerminologyModel.
  * It outputs those values in a json file.
@@ -51,6 +52,9 @@ import java.util.*;
 >>>>>>> 33226 File path now being correctly set.  Added documentation.:terminology-indexer-plugin/src/main/java/edu/mayo/kmdp/terms/TerminologyIndexer.java
 =======
  * This class reads the terminology files for values defined in the TerminologyModel.
+=======
+ * This class reads the terminology files for values which are defined in the TerminologyModel.
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
  * It outputs those values in a json file.
 >>>>>>> File path now being correctly set.  Added documentation
  */
@@ -60,11 +64,15 @@ public class TerminologyIndexer {
   /**
    *  All the terminologies read from the taxonomies package
 <<<<<<< HEAD
+<<<<<<< HEAD
    */
 =======
     */
 
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+   */
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
   Collection<TerminologyModel> terminologyModels;
 
   public TerminologyIndexer()  {
@@ -84,18 +92,26 @@ public class TerminologyIndexer {
    * Gets the files and stores the terminology metadata as JSON Objects.
    * Write the output file in the path location.
 <<<<<<< HEAD
+<<<<<<< HEAD
    * The method is called by the provider pom using mojo execute.
 =======
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+   * The method is called by the provider pom using mojo execute.
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
    * @param path the path for the output file
    */
   public void execute(String path) {
     try {
 <<<<<<< HEAD
+<<<<<<< HEAD
       readFilesToFindTerminologies();
 =======
       scan();
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+      readFilesToFindTerminologies();
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
 
       ObjectMapper mapper = new ObjectMapper();
       ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
@@ -107,15 +123,20 @@ public class TerminologyIndexer {
     } catch (IOException | IllegalAccessException e) {
         logger.error(e.getMessage(),e);
 <<<<<<< HEAD
+<<<<<<< HEAD
         throw new RuntimeException(e);
 =======
       throw new RuntimeException(e);
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+        throw new RuntimeException(e);
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
     }
   }
 
   /**
    * Read the files and determine which is a terminology.
+<<<<<<< HEAD
 <<<<<<< HEAD
    * For each of the terminologies, get the metadata and store as TerminologyModel.
    * Store all the terminologies in a Collection
@@ -127,6 +148,13 @@ public class TerminologyIndexer {
    */
   protected void scan() throws IllegalAccessException {
 >>>>>>> File path now being correctly set.  Added documentation
+=======
+   * For each of the terminologies, get the metadata and store as TerminologyModel.
+   * Store all the terminologies in a Collection
+   * @throws IllegalAccessException if there are issues getting the metadata from the file
+   */
+  protected void readFilesToFindTerminologies() throws IllegalAccessException {
+>>>>>>> 33226 - updates based on pull request comments.  start of user story
     terminologyModels = new ArrayList<>();
 
     // Get the taxonomy files that extend ControlledTerm
