@@ -1,22 +1,10 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 package edu.mayo.kmdp.terms;
-=======
-package org.omg.demo.terms;
->>>>>>> 33226 File path now being correctly set.  Added documentation.
-=======
-package edu.mayo.kmdp.terms;
->>>>>>> File path now being correctly set.  Added documentation
 
 import edu.mayo.kmdp.id.Term;
 
 import java.net.URI;
 import java.util.List;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> File path now being correctly set.  Added documentation
 /**
  * This class defines the parts of the terminology available for the service
  */
@@ -41,17 +29,6 @@ public class TerminologyModel {
     /**
      * The terms found in the terminology
      */
-<<<<<<< HEAD
-=======
-public class TerminologyModel {
-
-    private String name;
-    private String version;
-    private String schemeId;
-    private URI seriesId;
->>>>>>> 33226 File path now being correctly set.  Added documentation.
-=======
->>>>>>> File path now being correctly set.  Added documentation
     private List<Term> terms;
 
     public String getName() {
@@ -98,17 +75,4 @@ public class TerminologyModel {
         super();
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    public TerminologyModel(String name, String version, String schemeId, URI seriesId, List<Term>  terms) {
-        this.name = name;
-        this.version = version;
-        this.schemeId = schemeId;
-        this.seriesId = seriesId;
-        this.terms = terms;
-    }
->>>>>>> 33226 File path now being correctly set.  Added documentation.
-=======
->>>>>>> File path now being correctly set.  Added documentation
 }
