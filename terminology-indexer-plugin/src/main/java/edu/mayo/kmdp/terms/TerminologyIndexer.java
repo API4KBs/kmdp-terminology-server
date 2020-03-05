@@ -65,7 +65,23 @@ public class TerminologyIndexer {
             ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
 
             File f = new File(path);
-            f.createNewFile();
+            if (f.getParentFile() == null) {
+                throw new IllegalArgumentException("No parent folder detected, "
+                    + "unable to write index file in a root dir " + path);
+            }
+            if (! f.getParentFile().exists()) {
+                boolean pathInitialized = f.getParentFile().mkdirs();
+                if (!pathInitialized) {
+                    throw new IOException("Unable to create nested folders "
+                        + f.getParentFile().getPath());
+                }
+            }
+            if (!f.exists()) {
+                boolean fileCreated = f.createNewFile();
+                if (! fileCreated) {
+                    throw new IOException("Unable to create new file" + f.getPath());
+                }
+            }
             writer.writeValue(f, terminologyModels);
 
         } catch (IOException | IllegalAccessException e) {
@@ -84,11 +100,12 @@ public class TerminologyIndexer {
         terminologyModels = new ArrayList<>();
 
         // Get the taxonomy files that extend ControlledTerm
+        // TODO - Must move the base package name to a 'registry' class in kmdp-registry
         Reflections reflections = new Reflections("edu.mayo.ontology.taxonomies");
         Set<Class<? extends ControlledTerm>> subTypes = reflections.getSubTypesOf(ControlledTerm.class);
 
         // Read all the files.  If does not have namespace, is not a terminology and exception is ignored.
-        for(Class subtype:subTypes)  {
+        for(Class<?> subtype:subTypes)  {
             try {
                 TerminologyModel terminology = new TerminologyModel();
 
