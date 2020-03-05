@@ -29,7 +29,7 @@ public class TerminologyModel {
     /**
      * The terms found in the terminology
      */
-    private List<Term> terms;
+    private List<ConceptTerm> terms;
 
     public String getName() {
         return name;
@@ -63,11 +63,11 @@ public class TerminologyModel {
         this.seriesId = seriesId;
     }
 
-    public List<Term> getTerms() {
+    public List<ConceptTerm> getTerms() {
         return terms;
     }
 
-    public void setTerms(List<Term>  terms) {
+    public void setTerms(List<ConceptTerm>  terms) {
         this.terms = terms;
     }
 
