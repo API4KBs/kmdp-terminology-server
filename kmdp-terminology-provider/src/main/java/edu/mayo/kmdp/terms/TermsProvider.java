@@ -18,6 +18,7 @@ import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.v4.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
 
+import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._1_0.Answer;
@@ -121,12 +122,13 @@ public class TermsProvider implements TermsApiInternal {
    * @param terminology the TerminologyModel to be populated
    * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
    */
-  private static void setTerminologyMetadata(TerminologyModel terminology) throws Exception  {
+  private static void setTerminologyMetadata(TerminologyModel terminology)
+      throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
     UUID id = UUID.fromString(terminology.getSchemeId());
     String version = terminology.getVersion();
     multiKeyMap.put(id, version, terminology);
 
-    List<Term> terms = getTermsFromTerminologyClass(id, version);
+    List<ConceptTerm> terms = getTermsFromTerminologyClass(id, version);
     terminology.setTerms(terms);
   }
 
@@ -137,7 +139,8 @@ public class TermsProvider implements TermsApiInternal {
    * @return the terms for the terminology
    * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
    */
-  private static List<Term> getTermsFromTerminologyClass(UUID vocabularyId, String versionTag) throws Exception {
+  private static List<ConceptTerm> getTermsFromTerminologyClass(UUID vocabularyId, String versionTag)
+        throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     TerminologyModel term = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
 
     Class cls = Class.forName(term.getName());
@@ -148,9 +151,8 @@ public class TermsProvider implements TermsApiInternal {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
-    List<Term> terms = Arrays.asList((Term[])method.invoke(obj, null));
 
-    return terms;
+    return Arrays.asList((ConceptTerm[])method.invoke(obj, null));
   }
 
 
@@ -168,14 +170,13 @@ public class TermsProvider implements TermsApiInternal {
   @Override
   public Answer<ConceptIdentifier> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
     TerminologyModel termModel = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
-    List<Term> terms = termModel.getTerms();
-    for(Term term:terms)  {
+    List<ConceptTerm> terms = termModel.getTerms();
+    for(ConceptTerm term:terms)  {
 //      System.out.println(term.getConceptId());
       if(conceptId.equals("" +term.getConceptId()))  {
 //        System.out.println("Found - " +term.getConceptUUID());
-//        Answer<> conId = Answer.of(
-//                termModel.getTerms().stream()
-//                        .map(Term::asConcept));
+//        Answer<ConceptIdentifier> conId = (Answer<ConceptIdentifier>) Answer.of(termModel.getTerms().stream()
+//                        .map(Term::asConcept).collect(Collectors.toList()));
 //        conId.toString();
         break;
       }

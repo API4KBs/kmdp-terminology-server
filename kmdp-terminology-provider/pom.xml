@@ -29,24 +29,28 @@
           </execution>
         </executions>
         <configuration>
+          <includeProjectDependencies>false</includeProjectDependencies>
+          <includePluginDependencies>true</includePluginDependencies>
           <mainClass>edu.mayo.kmdp.terms.TerminologyIndexer</mainClass>
           <arguments>
             <argument>
-              ${project.build.outputDirectory}/terminologies.json
+              ${project.build.outputDirectory}\terminologies.json
             </argument>
           </arguments>
         </configuration>
+        <dependencies>
+            <dependency>
+                <groupId>edu.mayo.kmdp.terms</groupId>
+                <artifactId>terminology-indexer-plugin</artifactId>
+                <version>${project.version}</version>
+                <type>jar</type>
+            </dependency>
+        </dependencies>
       </plugin>
     </plugins>
   </build>
 
   <dependencies>
-
-    <dependency>
-      <groupId>edu.mayo.kmdp.terms</groupId>
-      <artifactId>terminology-indexer-plugin</artifactId>
-      <version>${project.version}</version>
-    </dependency>
 
     <dependency>
       <groupId>edu.mayo.kmdp.kdcaci.knew</groupId>
@@ -55,21 +59,9 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.commons</groupId>
-      <artifactId>commons-collections4</artifactId>
-      <version>4.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.reflections</groupId>
-      <artifactId>reflections</artifactId>
-      <version>0.9.12</version>
     </dependency>
 
   </dependencies>
