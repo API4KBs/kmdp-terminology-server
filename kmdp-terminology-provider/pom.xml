@@ -34,7 +34,7 @@
           <mainClass>edu.mayo.kmdp.terms.TerminologyIndexer</mainClass>
           <arguments>
             <argument>
-              ${project.build.outputDirectory}\terminologies.json
+              ${project.build.outputDirectory}${file.separator}terminologies.json
             </argument>
           </arguments>
         </configuration>
