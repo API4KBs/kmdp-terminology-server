@@ -13,16 +13,18 @@
  */
 package edu.mayo.kmdp.terms;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.v4.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
+import edu.mayo.kmdp.util.JSonUtil;
 
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
+import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.omg.spec.api4kp._1_0.identifiers.Pointer;
 import org.omg.spec.api4kp._1_0.identifiers.URIIdentifier;
 import org.omg.spec.api4kp._1_0.services.KPServer;
@@ -45,7 +47,7 @@ import java.util.stream.Collectors;
  */
 public class TermsProvider implements TermsApiInternal {
 
-  private static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
+   private static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
   /**
    *   A map using two keys to identify the TerminologyModel value
    */
@@ -88,11 +90,43 @@ public class TermsProvider implements TermsApiInternal {
     TerminologyModel termModel = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
     return Answer.of(
             termModel.getTerms().stream()
-                    .map(Term::asConcept)
+                    .map(ConceptTerm::asConcept)
                     .collect(Collectors.toList())
     );
   }
 
+  /**
+   * Using the vocabularyId along with the version, a Term with the given conceptId
+   * is returned.  If the term is not found, will return null.
+   * @param vocabularyId - The id of the terminology system
+   * @param versionTag - The version of the terminology
+   * @param conceptId - The conceptId of the term
+   * @return  retrieve a data payload that include terms, labels, definitions, relationships
+   * for the concept identified by that ID
+   */
+  @Override
+  public Answer<ConceptIdentifier> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
+    TerminologyModel termModel = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
+
+    if(termModel != null) {
+      List<ConceptTerm> terms = termModel.getTerms();
+
+      for (ConceptTerm term : terms) {
+        if (conceptId.equals(term.getConceptId().toString())) {
+          Term[] ancestors = term.getAncestors();
+          for(Term ancestor:ancestors)  {
+            System.out.println(ancestor);
+          }
+          Term[] closures = term.getClosure();
+          for(Term closure:closures)  {
+            System.out.println(closure);
+          }
+          return Answer.of(term.asConcept());
+        }
+      }
+    }
+    return null;
+  }
 
   /**
    * Reads the JSON file and populate the TerminologyModels
@@ -102,15 +136,15 @@ public class TermsProvider implements TermsApiInternal {
     multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
     try {
       // json file is stored in the classes directory during the build
-      TerminologyModel[] terminologies = new ObjectMapper().readValue(
-              new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
+      Optional<TerminologyModel[]> optional = JSonUtil.readJson(new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
+      TerminologyModel[] terminologies = optional.get();
 
       // for each terminology, set the metadata and terms
       for (TerminologyModel terminology : terminologies) {
         setTerminologyMetadata(terminology);
       }
     }catch (Exception e) {
-      logger.error(e.getMessage(),e);
+      logger.error("Unable to read the JSON file which leaves the application in unstable state.");
       throw new RuntimeException(e);
     }
     return multiKeyMap;
@@ -155,35 +189,20 @@ public class TermsProvider implements TermsApiInternal {
     return Arrays.asList((ConceptTerm[])method.invoke(obj, null));
   }
 
+  private ConceptIdentifier getConceptIdentifierFromConceptTerm(ConceptTerm term)  {
+    ConceptIdentifier conId = new ConceptIdentifier();
+    conId.setConceptId(term.getConceptId());
+    conId.setConceptUUID(term.getConceptUUID());
+    conId.setLabel(term.getLabel());
+    conId.setNamespace((NamespaceIdentifier)(term.getNamespace()));
+    conId.setRef(term.getRef());
+    conId.setTag(term.getTag());
+    return conId;
+  }
+
 
   //  The methods below will be implemented at a later date.
 
-  /**
-   * **** still under development - user story 40685 ***
-   * Describes a concept
-   * @param vocabularyId - The id of the terminology system
-   * @param versionTag - The version of the terminology
-   * @param conceptId - The conceptId of the term
-   * @return  retrieve a data payload that include terms, labels, definitions, relationships
-   * for the concept identified by that ID
-   */
-  @Override
-  public Answer<ConceptIdentifier> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
-    TerminologyModel termModel = (TerminologyModel)multiKeyMap.get(vocabularyId, versionTag);
-    List<ConceptTerm> terms = termModel.getTerms();
-    for(ConceptTerm term:terms)  {
-//      System.out.println(term.getConceptId());
-      if(conceptId.equals("" +term.getConceptId()))  {
-//        System.out.println("Found - " +term.getConceptUUID());
-//        Answer<ConceptIdentifier> conId = (Answer<ConceptIdentifier>) Answer.of(termModel.getTerms().stream()
-//                        .map(Term::asConcept).collect(Collectors.toList()));
-//        conId.toString();
-        break;
-      }
-    }
-//    System.out.println("doing great");
-    return null;
-  }
 
   /**
    * Determines if two concepts are related - default by subsumption (isA)

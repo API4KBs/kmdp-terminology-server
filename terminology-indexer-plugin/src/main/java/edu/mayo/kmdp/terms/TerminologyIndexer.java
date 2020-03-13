@@ -85,7 +85,6 @@ public class TerminologyIndexer {
             writer.writeValue(f, terminologyModels);
 
         } catch (IOException | IllegalAccessException e) {
-            logger.error(e.getMessage(),e);
             throw new RuntimeException(e);
         }
     }
