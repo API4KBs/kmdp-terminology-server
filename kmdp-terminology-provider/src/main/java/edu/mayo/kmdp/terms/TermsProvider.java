@@ -13,24 +13,20 @@
  */
 package edu.mayo.kmdp.terms;
 
-import edu.mayo.kmdp.id.Term;
+import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.v4.server.TermsApiInternal;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
 import edu.mayo.kmdp.util.JSonUtil;
 
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
-import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.omg.spec.api4kp._1_0.identifiers.Pointer;
 import org.omg.spec.api4kp._1_0.identifiers.URIIdentifier;
 import org.omg.spec.api4kp._1_0.services.KPServer;
 import org.omg.spec.api4kp._1_0.services.KnowledgeCarrier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.inject.Named;
@@ -38,16 +34,15 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@Named
-@KPServer
 /**
  *  This class reads a terminology json file created by the terminology plugin.
  *  If the tests fail, be sure to run parent build first so file is created in target/classes
  *  Terminology metadata and terms are available through services.
  */
+@Named
+@KPServer
 public class TermsProvider implements TermsApiInternal {
 
-   private static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
   /**
    *   A map using two keys to identify the TerminologyModel value
    */
@@ -113,14 +108,6 @@ public class TermsProvider implements TermsApiInternal {
 
       for (ConceptTerm term : terms) {
         if (conceptId.equals(term.getConceptId().toString())) {
-          Term[] ancestors = term.getAncestors();
-          for(Term ancestor:ancestors)  {
-            System.out.println(ancestor);
-          }
-          Term[] closures = term.getClosure();
-          for(Term closure:closures)  {
-            System.out.println(closure);
-          }
           return Answer.of(term.asConcept());
         }
       }
@@ -137,6 +124,9 @@ public class TermsProvider implements TermsApiInternal {
     try {
       // json file is stored in the classes directory during the build
       Optional<TerminologyModel[]> optional = JSonUtil.readJson(new ClassPathResource("terminologies.json").getInputStream(), TerminologyModel[].class);
+      if(!optional.isPresent())  {
+        throw new TermProviderException();
+      }
       TerminologyModel[] terminologies = optional.get();
 
       // for each terminology, set the metadata and terms
@@ -144,8 +134,7 @@ public class TermsProvider implements TermsApiInternal {
         setTerminologyMetadata(terminology);
       }
     }catch (Exception e) {
-      logger.error("Unable to read the JSON file which leaves the application in unstable state.");
-      throw new RuntimeException(e);
+      throw new TermProviderException();
     }
     return multiKeyMap;
   }
@@ -154,7 +143,6 @@ public class TermsProvider implements TermsApiInternal {
    * Set the terminology map using the terminologyId and version as keys.
    * Set the terms for the terminology.
    * @param terminology the TerminologyModel to be populated
-   * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
    */
   private static void setTerminologyMetadata(TerminologyModel terminology)
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
@@ -171,7 +159,6 @@ public class TermsProvider implements TermsApiInternal {
    * @param vocabularyId the schemeId for the vocabulary
    * @param versionTag the version of the terminology
    * @return the terms for the terminology
-   * @throws Exception - thrown if cannot create an instance of the Class or retrieve the terms
    */
   private static List<ConceptTerm> getTermsFromTerminologyClass(UUID vocabularyId, String versionTag)
         throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
@@ -180,24 +167,13 @@ public class TermsProvider implements TermsApiInternal {
     Class cls = Class.forName(term.getName());
     Object obj = null;
     try {
-      obj = cls.newInstance();
+      obj = cls.getDeclaredConstructor().newInstance();
     } catch(Exception e)  {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
 
     return Arrays.asList((ConceptTerm[])method.invoke(obj, null));
-  }
-
-  private ConceptIdentifier getConceptIdentifierFromConceptTerm(ConceptTerm term)  {
-    ConceptIdentifier conId = new ConceptIdentifier();
-    conId.setConceptId(term.getConceptId());
-    conId.setConceptUUID(term.getConceptUUID());
-    conId.setLabel(term.getLabel());
-    conId.setNamespace((NamespaceIdentifier)(term.getNamespace()));
-    conId.setRef(term.getRef());
-    conId.setTag(term.getTag());
-    return conId;
   }
 
 
@@ -210,7 +186,7 @@ public class TermsProvider implements TermsApiInternal {
    * @param vocabularyId - The id of the terminology system
    * @param versionTag - The version of the terminology
    * @param conceptId - The conceptId of the term
-   * @param relationshipId
+   * @param relationshipId - The relationship to search
    * @return
    */
   @Override

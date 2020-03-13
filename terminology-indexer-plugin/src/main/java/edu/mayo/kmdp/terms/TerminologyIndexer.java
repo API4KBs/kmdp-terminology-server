@@ -16,10 +16,9 @@ package edu.mayo.kmdp.terms;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
+import edu.mayo.kmdp.terms.exceptions.TermIndexerException;
 import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
 import org.reflections.Reflections;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,12 +30,11 @@ import java.util.*;
  * It outputs those values in a json file.
  */
 public class TerminologyIndexer {
-    private static Logger logger = LoggerFactory.getLogger(TerminologyIndexer.class);
 
     /**
      *  All the terminologies read from the taxonomies package
      */
-    Collection<TerminologyModel> terminologyModels;
+    private Collection<TerminologyModel> terminologyModels;
 
     public TerminologyIndexer()  {
         super();
@@ -85,7 +83,7 @@ public class TerminologyIndexer {
             writer.writeValue(f, terminologyModels);
 
         } catch (IOException | IllegalAccessException e) {
-            throw new RuntimeException(e);
+            throw new TermIndexerException();
         }
     }
 

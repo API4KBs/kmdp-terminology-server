@@ -17,7 +17,7 @@ import org.omg.spec.api4kp._1_0.identifiers.Pointer;
 
 public class TermsProviderTest {
 
-    TermsProvider provider = new TermsProvider();
+    private TermsProvider provider = new TermsProvider();
 
     /**
      * Verify the total number of terminologies

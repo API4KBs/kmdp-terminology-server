@@ -1,7 +1,5 @@
 package edu.mayo.kmdp.terms;
 
-import edu.mayo.kmdp.id.Term;
-
 import java.net.URI;
 import java.util.List;
 
