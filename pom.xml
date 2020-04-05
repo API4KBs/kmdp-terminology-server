@@ -23,7 +23,7 @@
   <name>KMDP :: Terminology Broker</name>
 
   <modules>
-    <module>terminology-indexer-plugin</module>
+    <module>kmdp-terminology-indexer</module>
     <module>kmdp-terminology-provider</module>
   </modules>
 

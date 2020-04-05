@@ -13,6 +13,8 @@
  */
 package edu.mayo.kmdp.terms;
 
+import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
+
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -26,7 +28,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 
 /**
- * This class reads the terminology files for values which are defined in the TerminologyModel.
+ * This class reads the terminology files for values which are defined in the TerminologyScheme.
  * It outputs those values in a json file.
  */
 public class TerminologyIndexer {
@@ -34,7 +36,7 @@ public class TerminologyIndexer {
     /**
      *  All the terminologies read from the taxonomies package
      */
-    private Collection<TerminologyModel> terminologyModels;
+    private Collection<TerminologyScheme> terminologyModels;
 
     public TerminologyIndexer()  {
         super();
@@ -89,7 +91,7 @@ public class TerminologyIndexer {
 
     /**
      * Read the files and determine which is a terminology.
-     * For each of the terminologies, get the metadata and store as TerminologyModel.
+     * For each of the terminologies, get the metadata and store as TerminologyScheme.
      * Store all the terminologies in a Collection
      * @throws IllegalAccessException if there are issues getting the metadata from the file
      */
@@ -104,7 +106,7 @@ public class TerminologyIndexer {
         // Read all the files.  If does not have namespace, is not a terminology and exception is ignored.
         for(Class<?> subtype:subTypes)  {
             try {
-                TerminologyModel terminology = new TerminologyModel();
+                TerminologyScheme terminology = new TerminologyScheme();
 
                 Field namespace = subtype.getField("namespace");
 

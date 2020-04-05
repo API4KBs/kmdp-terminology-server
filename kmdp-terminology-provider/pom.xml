@@ -41,7 +41,7 @@
         <dependencies>
             <dependency>
                 <groupId>edu.mayo.kmdp.terms</groupId>
-                <artifactId>terminology-indexer-plugin</artifactId>
+                <artifactId>kmdp-terminology-indexer</artifactId>
                 <version>${project.version}</version>
                 <type>jar</type>
             </dependency>

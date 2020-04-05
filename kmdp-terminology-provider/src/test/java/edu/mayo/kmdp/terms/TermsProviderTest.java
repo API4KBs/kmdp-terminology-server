@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -12,8 +13,7 @@ import edu.mayo.ontology.taxonomies.kao.knowledgeassettype._20190801.KnowledgeAs
 import edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts;
 import org.junit.jupiter.api.Test;
 import org.omg.spec.api4kp._1_0.Answer;
-import org.omg.spec.api4kp._1_0.identifiers.ConceptIdentifier;
-import org.omg.spec.api4kp._1_0.identifiers.Pointer;
+import org.omg.spec.api4kp._1_0.id.Pointer;
 
 public class TermsProviderTest {
 
@@ -33,7 +33,7 @@ public class TermsProviderTest {
      */
     @Test
     void testGetTerms_PCv1() {
-        Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
                 "20191201", "");
         assertEquals(578, answer.get().size());
     }
@@ -43,7 +43,7 @@ public class TermsProviderTest {
      */
     @Test
     void testGetTerms_PCv2() {
-        Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
                 "20200109", "");
         assertEquals(598, answer.get().size());
     }
@@ -54,7 +54,7 @@ public class TermsProviderTest {
     @Test
     void testGetTerms_PCvBad() {
         assertThrows(NullPointerException.class,
-                ()->{Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+                ()->{Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
                         "20191208", "");
                 });
     }
@@ -64,7 +64,7 @@ public class TermsProviderTest {
      */
     @Test
     void testGetTerms_KAv1() {
-        Answer<List<ConceptIdentifier>> answer = provider.getTerms(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
                 "20190801", "");
         assertEquals(38, answer.get().size());
     }
@@ -88,14 +88,16 @@ public class TermsProviderTest {
         String label = "On Angiotensin Receptor Neprilysin Inhibitor";
         String ref = "http://ontology.mayo.edu/ontologies/clinicalsituationontology/c05e08cb-1ee6-4b0a-9dfa-e825f739734c";
         String tag = "c05e08cb-1ee6-4b0a-9dfa-e825f739734c";
-        Answer<ConceptIdentifier> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        String namespace = "https://ontology.mayo.edu/taxonomies/propositionalconcepts/20191201/";
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
                 "20191201", conceptId);
 
-        assertEquals(conceptUUID, answer.get().getConceptUUID().toString());
-        assertEquals(conceptId, answer.get().getConceptId().toString());
-        assertEquals(label, answer.get().getLabel());
-        assertEquals(ref, answer.get().getRef().toString());
+        assertEquals(conceptUUID, answer.get().getUuid().toString());
+        assertEquals(conceptId, answer.get().getResourceId().toString());
+        assertEquals(label, answer.get().getName());
+        assertEquals(ref, answer.get().getReferentId().toString());
         assertEquals(tag, answer.get().getTag());
+        assertEquals(namespace, answer.get().getNamespaceUri().toString());
     }
 
     /**
@@ -117,14 +119,16 @@ public class TermsProviderTest {
         String label = "Multi-Agent Decision Task Model";
         String ref = "https://www.omg.org/spec/API4KP/api4kp-kao/MultiAgentDecisionTaskModel";
         String tag = "MultiAgentDecisionTaskModel";
-        Answer<ConceptIdentifier> answer = provider.getTerm(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
+        String namespace = "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType/20190801/";
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
             "20190801", conceptId);
 
-        assertEquals(conceptUUID, answer.get().getConceptUUID().toString());
-        assertEquals(conceptId, answer.get().getConceptId().toString());
-        assertEquals(label, answer.get().getLabel());
-        assertEquals(ref, answer.get().getRef().toString());
+        assertEquals(conceptUUID, answer.get().getUuid().toString());
+        assertEquals(conceptId, answer.get().getResourceId().toString());
+        assertEquals(label, answer.get().getName());
+        assertEquals(ref, answer.get().getReferentId().toString());
         assertEquals(tag, answer.get().getTag());
+        assertEquals(namespace, answer.get().getNamespaceUri().toString());
     }
 
     /**
@@ -133,7 +137,7 @@ public class TermsProviderTest {
     @Test
     void testGetTerm_PCv1_ConIdNotFound() {
         String conceptId = "https://ontology.mayo.edu/taxonomies/clinicalsituations#notRealConceptId";
-        Answer<ConceptIdentifier> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
             "20191201", conceptId);
         assertNull(answer);
     }
@@ -144,7 +148,7 @@ public class TermsProviderTest {
     @Test
     void testGetTerm_PCv1_VersionNotFound() {
         String conceptId = "https://ontology.mayo.edu/taxonomies/clinicalsituations#f212fc95-964d-3c1a-b75c-d4ff0269e18c";
-        Answer<ConceptIdentifier> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
             "19650724", conceptId);
         assertNull(answer);
     }
