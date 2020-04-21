@@ -13,6 +13,7 @@
  */
 package edu.mayo.kmdp.terms;
 
+import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
@@ -25,8 +26,6 @@ import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.id.Pointer;
-import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
-import org.omg.spec.api4kp._1_0.identifiers.URIIdentifier;
 import org.omg.spec.api4kp._1_0.services.KPServer;
 import org.omg.spec.api4kp._1_0.services.KnowledgeCarrier;
 import org.springframework.core.io.ClassPathResource;
@@ -34,7 +33,6 @@ import org.springframework.core.io.ClassPathResource;
 import javax.inject.Named;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -45,9 +43,6 @@ import java.util.stream.Collectors;
 @KPServer
 public class TermsProvider implements TermsApiInternal {
 
-  // TODO: Right now getTerm returns a ConceptIdentifier which does not have relationships.  Need to figure out what would be a better return Object
-  // TODO: Move the base package name to a 'registry' class in kmdp-registry in terminology indexer
-
   /**
    *   A map using two keys to identify the TerminologyScheme value
    */
@@ -56,7 +51,6 @@ public class TermsProvider implements TermsApiInternal {
   public TermsProvider()  {
     super();
   }
-
 
   /**
    * Gets a list of the terminologies as Pointers containing name and URI
@@ -174,33 +168,10 @@ public class TermsProvider implements TermsApiInternal {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
-//    Method ancestors = cls.getDeclaredMethod(("ancestors"));
-//    Method closures = cls.getDeclaredMethod(("closures"));
     ConceptTerm[] terms = (ConceptTerm[])method.invoke(obj, null);
-    ArrayList<ConceptDescriptor> descriptors = new ArrayList<>();
 
-    for(ConceptTerm term:terms) {
-      ConceptDescriptor descriptor = new ConceptDescriptor();
-
-      // TODO - Find out why the term does not contain all the information when returned from values call
-      //descriptor.toConceptDescriptor(term);
-
-      descriptor.setReferentId(term.getRef());
-      descriptor.setUuid(term.getConceptUUID());
-      descriptor.setName(term.getLabel());
-      descriptor.setTag(term.getTag());
-      descriptor.setResourceId(term.getConceptId());
-      descriptor.setNamespaceUri(((NamespaceIdentifier) term.getNamespace()).getId());
-      descriptor.setAncestors(term.getAncestors());
-      descriptor.setClosure(term.getClosure());
-      descriptors.add(descriptor);
-    }
-    return descriptors;
+    return convertTermArrayToListOfDescriptors(terms);
   }
-
-
-  //  The methods below will be implemented at a later date.
-
 
   /**
    * Determines if two concepts are related - default by subsumption (isA)
@@ -208,12 +179,54 @@ public class TermsProvider implements TermsApiInternal {
    * @param vocabularyId - The id of the terminology system
    * @param versionTag - The version of the terminology
    * @param conceptId - The conceptId of the term
-   * @return
+   * @return a list of any ancestors
    */
   @Override
-  public Answer<Void> listAncestors(UUID vocabularyId, String versionTag, String conceptId) {
-    return null;
+  public Answer<List<ConceptDescriptor>> listAncestors(UUID vocabularyId, String versionTag, String conceptId) {
+    Answer<ConceptDescriptor> conceptDescriptor = getTerm(vocabularyId, versionTag, conceptId);
+    return Answer.of(convertTermArrayToListOfDescriptors(conceptDescriptor.get().getAncestors()));
   }
+
+  /**
+   * Finds out if a concept is an ancestor of another concept
+   * @param vocabularyId - The id of the terminology system
+   * @param versionTag - the tag for the terminology
+   * @param conceptId - the id of the concept who is looking to find if another is an ancestor
+   * @param testConceptId - the id of the possible ancestor
+   * @return a boolean indicating if the testConceptId is an ancestor
+   */
+  @Override
+  public Answer<Boolean> isAncestor(UUID vocabularyId,   String versionTag,   String conceptId,   String testConceptId  )  {
+    Answer<ConceptDescriptor> conceptDescriptor = getTerm(vocabularyId, versionTag, conceptId);
+    Term[] ancestors = conceptDescriptor.get().getAncestors();
+    if(ancestors != null) {
+      for (int i = 0; i < ancestors.length; i++) {
+        if (testConceptId.equals(ancestors[i].getConceptId().toString())) {
+          return Answer.of(Boolean.TRUE);
+        }
+      }
+    }
+    return Answer.of(Boolean.FALSE);
+  }
+
+  /**
+   * Converts an array of Terms to a List of ConceptDescriptors
+   * @param terms the array of Terms
+   * @return the List of ConceptDescriptors
+   */
+  private static List<ConceptDescriptor> convertTermArrayToListOfDescriptors(Term[] terms)  {
+    ArrayList<ConceptDescriptor> descriptors = new ArrayList<>();
+    if(terms!= null) {
+      for (Term term : terms) {
+        ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm) term);
+        descriptors.add(descriptor);
+      }
+    }
+    return descriptors;
+  }
+
+  //  The methods below will be implemented at a later date.
+
 
   /**
    * Returns a representation of this version of the vocabulary.
@@ -228,6 +241,7 @@ public class TermsProvider implements TermsApiInternal {
   public Answer<KnowledgeCarrier> getVocabulary(UUID vocabularyId, String versionTag, String xAccept) {
     return null;
   }
+
 
   /**
    * Resolves a concept (expression) within a terminology system
@@ -244,19 +258,4 @@ public class TermsProvider implements TermsApiInternal {
   public Answer<Void> isMember(UUID vocabularyId, String versionTag, String conceptExpression) {
     return null;
   }
-
-  /**
-   * Finds out if a concept is an ancestor of another concept
-   * @param vocabularyId - The id of the terminology system
-   * @param versionTag - the tag for the terminology
-   * @param conceptId - the id of the concept who is looking to find if another is an ancestor
-   * @param testConceptId - the id of the possible ancestor
-   * @return
-   */
-  @Override
-  public Answer<Void> isAncestor(UUID vocabularyId,   String versionTag,   String conceptId,   String testConceptId  )  {
-    return null;
-  }
-
-
 }

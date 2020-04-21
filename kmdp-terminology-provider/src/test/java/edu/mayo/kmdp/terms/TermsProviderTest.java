@@ -1,16 +1,19 @@
 package edu.mayo.kmdp.terms;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
+import edu.mayo.ontology.taxonomies.api4kp.knowledgeoperations._20190801.KnowledgeProcessingOperation;
+import edu.mayo.ontology.taxonomies.kao.knowledgeassettype._20190801.KnowledgeAssetType;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import edu.mayo.ontology.taxonomies.kao.knowledgeassettype._20190801.KnowledgeAssetType;
-import edu.mayo.ontology.taxonomies.propositionalconcepts.PropositionalConcepts;
 import org.junit.jupiter.api.Test;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.id.Pointer;
@@ -25,36 +28,27 @@ public class TermsProviderTest {
     @Test
     void testProvider() {
         List<Pointer> termSystems = provider.listTerminologies().orElse(Collections.emptyList());
-        assertEquals(60, termSystems.size());
+        assertEquals(50, termSystems.size());
     }
 
     /**
-     * Verify the number of terms found in a specific version of PropositionalConcepts
+     * Verify the number of terms found in a specific version of KnowledgeProcessingOperation
      */
     @Test
-    void testGetTerms_PCv1() {
-        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
-                "20191201", "");
-        assertEquals(578, answer.get().size());
-    }
-
-    /**
-     * Verify the number of terms found in a different specific version of PropositionalConcepts
-     */
-    @Test
-    void testGetTerms_PCv2() {
-        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
-                "20200109", "");
-        assertEquals(598, answer.get().size());
+    void testGetTerms_KPOv1() {
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(
+            KnowledgeProcessingOperation.SCHEME_ID),
+                "20190801", "");
+        assertEquals(97, answer.get().size());
     }
 
     /**
      * Verify an exception is thrown if the version does not exist
      */
     @Test
-    void testGetTerms_PCvBad() {
+    void testGetTerms_KPOvBad() {
         assertThrows(NullPointerException.class,
-                ()->{Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+                ()->{Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
                         "20191208", "");
                 });
     }
@@ -70,27 +64,20 @@ public class TermsProviderTest {
     }
 
     /**
-     * Get a term from PropositionalConcepts and verify contents
-     * On_Angiotensin_Receptor_Neprilysin_Inhibitor(
-     * "https://ontology.mayo.edu/taxonomies/clinicalsituations#f212fc95-964d-3c1a-b75c-d4ff0269e18c",
-     * "f212fc95-964d-3c1a-b75c-d4ff0269e18c",
-     * "c05e08cb-1ee6-4b0a-9dfa-e825f739734c",
-     * Arrays.asList("c05e08cb-1ee6-4b0a-9dfa-e825f739734c"),
-     * "On Angiotensin Receptor Neprilysin Inhibitor",
-     * "http://ontology.mayo.edu/ontologies/clinicalsituationontology/c05e08cb-1ee6-4b0a-9dfa-e825f739734c",
-     * new Term[0],
-     * new Term[0])
+     * Get a term from KnowledgeProcessingOperation and verify contents
      */
     @Test
-    void testGetTerm_PCv1() {
-        String conceptUUID = "f212fc95-964d-3c1a-b75c-d4ff0269e18c";
-        String conceptId = "https://ontology.mayo.edu/taxonomies/clinicalsituations#f212fc95-964d-3c1a-b75c-d4ff0269e18c";
-        String label = "On Angiotensin Receptor Neprilysin Inhibitor";
-        String ref = "http://ontology.mayo.edu/ontologies/clinicalsituationontology/c05e08cb-1ee6-4b0a-9dfa-e825f739734c";
-        String tag = "c05e08cb-1ee6-4b0a-9dfa-e825f739734c";
-        String namespace = "https://ontology.mayo.edu/taxonomies/propositionalconcepts/20191201/";
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
-                "20191201", conceptId);
+    void testGetTerm_KPOv1() {
+        String conceptUUID = "b589ab25-df70-3a5f-9ff9-b2fe36728e79";
+        String conceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#b589ab25-df70-3a5f-9ff9-b2fe36728e79";
+        String label = "create working knowledge base task";
+        String ref = "https://www.omg.org/spec/API4KP/api4kp-ops/CreateWorkingKnowledgeBaseTask";
+        String tag = "CreateWorkingKnowledgeBaseTask";
+        String namespace = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations/20190801/";
+        String ancestorName = "knowledge base building task";
+
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+                "20190801", conceptId);
 
         assertEquals(conceptUUID, answer.get().getUuid().toString());
         assertEquals(conceptId, answer.get().getResourceId().toString());
@@ -98,28 +85,26 @@ public class TermsProviderTest {
         assertEquals(ref, answer.get().getReferentId().toString());
         assertEquals(tag, answer.get().getTag());
         assertEquals(namespace, answer.get().getNamespaceUri().toString());
+        assertEquals(1, answer.get().getAncestors().length);
+        Term[] terms = answer.get().getAncestors();
+        for(Term term:terms) {
+            assertEquals(ancestorName, ((KnowledgeProcessingOperation)term).getName());
+        }
     }
 
     /**
      * Get a term from Knowledge Asset type which has relations
-     *
-     *  "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType#5c742ccc-fb77-3f33-87f5-663c2d9d251c",
-     *  "5c742ccc-fb77-3f33-87f5-663c2d9d251c",
-     *  "MultiAgentDecisionTaskModel",
-     *  Arrays.asList ("MultiAgentDecisionTaskModel"),
-     *  "Multi-Agent Decision Task Model",
-     *  "https://www.omg.org/spec/API4KP/api4kp-kao/MultiAgentDecisionTaskModel",
-     *  new Term[]{Decision_Task_Model},
-     *  new Term[]{Decision_Task_Model, Cognitive_Process_Model}),
      */
     @Test
-    void testGetTerm_KAv1_HasRelations() {
+    void testGetTerm_KAv1() {
         String conceptUUID = "5c742ccc-fb77-3f33-87f5-663c2d9d251c";
         String conceptId = "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType#5c742ccc-fb77-3f33-87f5-663c2d9d251c";
         String label = "Multi-Agent Decision Task Model";
         String ref = "https://www.omg.org/spec/API4KP/api4kp-kao/MultiAgentDecisionTaskModel";
         String tag = "MultiAgentDecisionTaskModel";
         String namespace = "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType/20190801/";
+        String ancestorName = "Decision Task Model";
+
         Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
             "20190801", conceptId);
 
@@ -129,16 +114,21 @@ public class TermsProviderTest {
         assertEquals(ref, answer.get().getReferentId().toString());
         assertEquals(tag, answer.get().getTag());
         assertEquals(namespace, answer.get().getNamespaceUri().toString());
+        assertEquals(1, answer.get().getAncestors().length);
+        Term[] terms = answer.get().getAncestors();
+        for(Term term:terms) {
+            assertEquals(ancestorName, ((KnowledgeAssetType)term).getName());
+        }
     }
 
     /**
      * Verify null is returned if conceptId is not found
      */
     @Test
-    void testGetTerm_PCv1_ConIdNotFound() {
+    void testGetTerm_KPOv1_ConIdNotFind() {
         String conceptId = "https://ontology.mayo.edu/taxonomies/clinicalsituations#notRealConceptId";
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
-            "20191201", conceptId);
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+            "20190801", conceptId);
         assertNull(answer);
     }
 
@@ -146,11 +136,55 @@ public class TermsProviderTest {
      * Verify null is returned if conceptId is not found
      */
     @Test
-    void testGetTerm_PCv1_VersionNotFound() {
+    void testGetTerm_KPOv1_VersionNotFound() {
         String conceptId = "https://ontology.mayo.edu/taxonomies/clinicalsituations#f212fc95-964d-3c1a-b75c-d4ff0269e18c";
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(PropositionalConcepts.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
             "19650724", conceptId);
         assertNull(answer);
+    }
+
+    /**
+     * Get a term from Knowledge Asset type which has relations
+     */
+    @Test
+    void testGetAncestors_KPOv1() {
+        String conceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#d76a9299-4e72-36c1-a261-2265afe11582";
+        String[] ancestorNames = {"selection task", "syntactic knowledge processing task"};
+
+        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+            "20190801", conceptId);
+
+        assertEquals(2, answer.get().getAncestors().length);
+        Term[] terms = answer.get().getAncestors();
+        for (int i = 0; i < terms.length; i++) {
+            assertEquals(ancestorNames[i], ((KnowledgeProcessingOperation)terms[i]).getName());
+        }
+    }
+
+    /**
+     * Verify that a concept is an ancestor
+     */
+    @Test
+    void testIsAncestor_KPOv1() {
+        String conceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#d76a9299-4e72-36c1-a261-2265afe11582";
+        String ancestorConceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#a5628370-845c-350f-b0e7-6cab66aac127";
+
+        Answer<Boolean> answer = provider.isAncestor(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+            "20190801", conceptId, ancestorConceptId);
+        assertTrue(answer.get().booleanValue());
+    }
+
+    /**
+     * Verify that a concept is an ancestor
+     */
+    @Test
+    void testIsNotAncestor_KPOv1() {
+        String conceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#d76a9299-4e72-36c1-a261-2265afe11582";
+        String ancestorConceptId = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations#a5628370-845c-350f-b0e7";
+
+        Answer<Boolean> answer = provider.isAncestor(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+            "20190801", conceptId, ancestorConceptId);
+        assertFalse(answer.get().booleanValue());
     }
 
 }
