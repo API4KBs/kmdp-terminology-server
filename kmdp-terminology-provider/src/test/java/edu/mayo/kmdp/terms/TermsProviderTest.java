@@ -10,6 +10,7 @@ import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import edu.mayo.ontology.taxonomies.api4kp.knowledgeoperations._20190801.KnowledgeProcessingOperation;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype._20190801.KnowledgeAssetType;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -157,7 +158,7 @@ public class TermsProviderTest {
         assertEquals(2, answer.get().getAncestors().length);
         Term[] terms = answer.get().getAncestors();
         for (int i = 0; i < terms.length; i++) {
-            assertEquals(ancestorNames[i], ((KnowledgeProcessingOperation)terms[i]).getName());
+            assertTrue(Arrays.asList(ancestorNames).contains(((KnowledgeProcessingOperation)terms[i]).getName()));
         }
     }
 

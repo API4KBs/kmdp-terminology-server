@@ -65,7 +65,7 @@ public class TermsProvider implements TermsApiInternal {
     for(TerminologyScheme term:terms) {
       Pointer ptr = new Pointer()
               .withName(term.getName())
-              .withType(KnowledgeAssetTypeSeries.Value_Set.getConceptId())
+              .withType(KnowledgeAssetTypeSeries.Value_Set.getVersionId())
               .withResourceId(term.getSeriesId())
               .withVersionTag(term.getVersion());
       pointers.add(ptr);
