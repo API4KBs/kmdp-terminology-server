@@ -19,7 +19,7 @@ import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import edu.mayo.kmdp.terms.exceptions.TermIndexerException;
-import org.omg.spec.api4kp._1_0.identifiers.NamespaceIdentifier;
+import org.omg.spec.api4kp._1_0.id.ResourceIdentifier;
 import org.reflections.Reflections;
 
 import java.io.File;
@@ -113,13 +113,13 @@ public class TerminologyIndexer {
                 String name = subtype.getName();
                 terminology.setName(name);
 
-                String version = ((NamespaceIdentifier)namespace.get(null)).getVersion();
+                String version = ((ResourceIdentifier)namespace.get(null)).getVersionTag();
                 terminology.setVersion(version);
 
-                String schemeId = ((NamespaceIdentifier)namespace.get(null)).getTag();
+                String schemeId = ((ResourceIdentifier)namespace.get(null)).getTag();
                 terminology.setSchemeId(schemeId);
 
-                terminology.setSeriesId(((NamespaceIdentifier)namespace.get(null)).getId());
+                terminology.setSeriesId(((ResourceIdentifier)namespace.get(null)).getResourceId());
 
                 terminologyModels.add(terminology);
 

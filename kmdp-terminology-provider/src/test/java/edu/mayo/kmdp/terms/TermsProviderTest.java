@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import edu.mayo.ontology.taxonomies.api4kp.knowledgeoperations._20190801.KnowledgeProcessingOperation;
 import edu.mayo.ontology.taxonomies.kao.knowledgeassettype._20190801.KnowledgeAssetType;
@@ -18,6 +17,7 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.id.Pointer;
+import org.omg.spec.api4kp._1_0.id.Term;
 
 public class TermsProviderTest {
 
@@ -74,7 +74,7 @@ public class TermsProviderTest {
         String label = "create working knowledge base task";
         String ref = "https://www.omg.org/spec/API4KP/api4kp-ops/CreateWorkingKnowledgeBaseTask";
         String tag = "CreateWorkingKnowledgeBaseTask";
-        String namespace = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations/20190801/";
+        String namespace = "https://ontology.mayo.edu/taxonomies/API4KP/KnowledgeOperations";
         String ancestorName = "knowledge base building task";
 
         Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
@@ -103,7 +103,7 @@ public class TermsProviderTest {
         String label = "Multi-Agent Decision Task Model";
         String ref = "https://www.omg.org/spec/API4KP/api4kp-kao/MultiAgentDecisionTaskModel";
         String tag = "MultiAgentDecisionTaskModel";
-        String namespace = "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType/20190801/";
+        String namespace = "https://ontology.mayo.edu/taxonomies/KAO/KnowledgeAssetType";
         String ancestorName = "Decision Task Model";
 
         Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeAssetType.SCHEME_ID),

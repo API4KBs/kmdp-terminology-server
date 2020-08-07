@@ -13,7 +13,6 @@
  */
 package edu.mayo.kmdp.terms;
 
-import edu.mayo.kmdp.id.Term;
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
@@ -26,6 +25,7 @@ import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._1_0.Answer;
 import org.omg.spec.api4kp._1_0.id.Pointer;
+import org.omg.spec.api4kp._1_0.id.Term;
 import org.omg.spec.api4kp._1_0.services.KPServer;
 import org.omg.spec.api4kp._1_0.services.KnowledgeCarrier;
 import org.springframework.core.io.ClassPathResource;
