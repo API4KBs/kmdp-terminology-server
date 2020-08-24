@@ -7,17 +7,17 @@
   <parent>
     <groupId>edu.mayo.kmdp</groupId>
     <artifactId>kmdp-terminology-service-base</artifactId>
-    <version>7.0.1-SNAPSHOT</version>
+    <version>8.0.0-SNAPSHOT</version>
   </parent>
 
   <packaging>pom</packaging>
 
   <artifactId>kmdp-terminology-broker</artifactId>
-  <version>3.7.0-SNAPSHOT</version>
+  <version>4.8.0-SNAPSHOT</version>
 
   <properties>
-    <clinical.terms.version>7.0.1-SNAPSHOT</clinical.terms.version>
-    <kmd.terms.version>7.0.1-SNAPSHOT</kmd.terms.version>
+    <clinical.terms.version>8.0.0-SNAPSHOT</clinical.terms.version>
+    <kmd.terms.version>8.0.0-SNAPSHOT</kmd.terms.version>
   </properties>
 
   <name>KMDP :: Terminology Broker</name>

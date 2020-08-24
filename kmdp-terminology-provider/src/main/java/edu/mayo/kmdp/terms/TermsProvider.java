@@ -14,25 +14,28 @@
 package edu.mayo.kmdp.terms;
 
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
-import edu.mayo.kmdp.terms.impl.model.ConceptDescriptor;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
-import edu.mayo.kmdp.terms.v4.server.TermsApiInternal;
-import edu.mayo.ontology.taxonomies.kao.knowledgeassettype.KnowledgeAssetTypeSeries;
 import edu.mayo.kmdp.util.JSonUtil;
-
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import javax.inject.Named;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
-import org.omg.spec.api4kp._1_0.Answer;
-import org.omg.spec.api4kp._1_0.id.Pointer;
-import org.omg.spec.api4kp._1_0.id.Term;
-import org.omg.spec.api4kp._1_0.services.KPServer;
-import org.omg.spec.api4kp._1_0.services.KnowledgeCarrier;
+import org.omg.spec.api4kp._20200801.Answer;
+import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
+import org.omg.spec.api4kp._20200801.id.Pointer;
+import org.omg.spec.api4kp._20200801.id.Term;
+import org.omg.spec.api4kp._20200801.services.KPServer;
+import org.omg.spec.api4kp._20200801.services.KnowledgeCarrier;
+import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
+import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
+import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.inject.Named;
-import java.lang.reflect.Method;
-import java.util.*;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -88,7 +91,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Using the vocabularyId along with the version, a Term with the given conceptId
-   * is returned.  If the term is not found, will return null.
+   * is returned.  If the term is not found, will return a status of NotFound.
    * @param vocabularyId - The id of the terminology system
    * @param versionTag - The version of the terminology
    * @param conceptId - The conceptId of the term
@@ -108,7 +111,7 @@ public class TermsProvider implements TermsApiInternal {
         }
       }
     }
-    return null;
+    return Answer.notFound();
   }
 
   /**
@@ -119,8 +122,10 @@ public class TermsProvider implements TermsApiInternal {
     multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
     try {
       // json file is stored in the classes directory during the build
-      Optional<TerminologyScheme[]> optional = JSonUtil.readJson(new ClassPathResource("terminologies.json").getInputStream(), TerminologyScheme[].class);
-      if(!optional.isPresent())  {
+      Optional<TerminologyScheme[]> optional = JSonUtil
+          .readJson(new ClassPathResource("/terminologies.json").getInputStream(),
+              TerminologyScheme[].class);
+      if (!optional.isPresent()) {
         throw new TermProviderException();
       }
       TerminologyScheme[] terminologies = optional.get();
@@ -129,7 +134,8 @@ public class TermsProvider implements TermsApiInternal {
       for (TerminologyScheme terminology : terminologies) {
         setTerminologyMetadata(terminology);
       }
-    }catch (Exception e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new TermProviderException();
     }
     return multiKeyMap;
@@ -218,7 +224,7 @@ public class TermsProvider implements TermsApiInternal {
     ArrayList<ConceptDescriptor> descriptors = new ArrayList<>();
     if(terms!= null) {
       for (Term term : terms) {
-        ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm) term);
+        ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm<?>) term);
         descriptors.add(descriptor);
       }
     }
@@ -239,7 +245,7 @@ public class TermsProvider implements TermsApiInternal {
    */
   @Override
   public Answer<KnowledgeCarrier> getVocabulary(UUID vocabularyId, String versionTag, String xAccept) {
-    return null;
+    return Answer.unsupported();
   }
 
 
@@ -256,6 +262,6 @@ public class TermsProvider implements TermsApiInternal {
    */
   @Override
   public Answer<Void> isMember(UUID vocabularyId, String versionTag, String conceptExpression) {
-    return null;
+    return Answer.unsupported();
   }
 }
