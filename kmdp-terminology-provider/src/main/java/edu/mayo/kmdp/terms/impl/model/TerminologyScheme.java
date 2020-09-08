@@ -1,9 +1,10 @@
 package edu.mayo.kmdp.terms.impl.model;
 
-import java.net.URI;
-import java.util.List;
-import org.omg.spec.api4kp._20200801.terms.ConceptScheme;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
+
+import java.net.URI;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * This class defines the parts of the terminology available for the service
@@ -29,7 +30,7 @@ public class TerminologyScheme {
   /**
    * The terms found in the terminology
    */
-  private List<ConceptDescriptor> terms;
+  private Map<UUID,ConceptDescriptor> terms;
 
   public String getName() {
     return name;
@@ -63,11 +64,11 @@ public class TerminologyScheme {
     this.seriesId = seriesId;
   }
 
-  public List<ConceptDescriptor> getTerms() {
+  public Map<UUID,ConceptDescriptor> getTerms() {
     return terms;
   }
 
-  public void setTerms(List<ConceptDescriptor>  terms) {
+  public void setTerms(Map<UUID,ConceptDescriptor>  terms) {
     this.terms = terms;
   }
 

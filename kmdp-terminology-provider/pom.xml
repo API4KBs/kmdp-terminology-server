@@ -22,19 +22,19 @@
         <version>1.2.1</version>
         <executions>
           <execution>
-            <phase>process-resources</phase>
+            <phase>process-test-resources</phase>
             <goals>
               <goal>java</goal>
             </goals>
           </execution>
         </executions>
         <configuration>
-          <includeProjectDependencies>false</includeProjectDependencies>
+          <includeProjectDependencies>true</includeProjectDependencies>
           <includePluginDependencies>true</includePluginDependencies>
           <mainClass>edu.mayo.kmdp.terms.TerminologyIndexer</mainClass>
           <arguments>
             <argument>
-              ${project.build.outputDirectory}${file.separator}terminologies.json
+              ${project.build.testOutputDirectory}${file.separator}terminologies.json
             </argument>
           </arguments>
         </configuration>

@@ -13,17 +13,10 @@
  */
 package edu.mayo.kmdp.terms;
 
+import com.google.common.collect.Lists;
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
 import edu.mayo.kmdp.util.JSonUtil;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
-import javax.inject.Named;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._20200801.Answer;
@@ -36,6 +29,12 @@ import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetT
 import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.core.io.ClassPathResource;
+
+import javax.inject.Named;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -86,7 +85,7 @@ public class TermsProvider implements TermsApiInternal {
 
   public Answer<List<ConceptDescriptor>> getTerms(UUID vocabularyId, String versionTag, String label) {
     TerminologyScheme termModel = (TerminologyScheme)multiKeyMap.get(vocabularyId, versionTag);
-    return Answer.of(termModel.getTerms());
+    return Answer.of(Lists.newArrayList(termModel.getTerms().values()));
   }
 
   /**
@@ -103,14 +102,15 @@ public class TermsProvider implements TermsApiInternal {
     TerminologyScheme terminologyScheme = (TerminologyScheme)multiKeyMap.get(vocabularyId, versionTag);
 
     if(terminologyScheme != null) {
-      List<ConceptDescriptor> terms = terminologyScheme.getTerms();
+      Map<UUID,ConceptDescriptor> terms = terminologyScheme.getTerms();
 
-      for (ConceptDescriptor term : terms) {
-        if (conceptId.equals(term.getResourceId().toString())) {
-          return Answer.of(term);
-        }
+      UUID conceptIdAsUuid = UUID.fromString(conceptId);
+
+      if (terms.containsKey(conceptIdAsUuid)) {
+        return Answer.of(terms.get(conceptIdAsUuid));
       }
     }
+
     return Answer.notFound();
   }
 
@@ -119,7 +119,8 @@ public class TermsProvider implements TermsApiInternal {
    * @return MultiKeyMap where id and version are the keys and TerminologyScheme is the value
    */
   private static MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
-    multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
+    MultiKeyMap multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
+
     try {
       // json file is stored in the classes directory during the build
       Optional<TerminologyScheme[]> optional = JSonUtil
@@ -132,12 +133,16 @@ public class TermsProvider implements TermsApiInternal {
 
       // for each terminology, set the metadata and terms
       for (TerminologyScheme terminology : terminologies) {
-        setTerminologyMetadata(terminology);
+        UUID id = UUID.fromString(terminology.getSchemeId());
+        String version = terminology.getVersion();
+
+        multiKeyMap.put(id, version, setTerminologyMetadata(terminology));
       }
     } catch (Exception e) {
       e.printStackTrace();
       throw new TermProviderException();
     }
+
     return multiKeyMap;
   }
 
@@ -146,27 +151,23 @@ public class TermsProvider implements TermsApiInternal {
    * Set the terms for the terminology.
    * @param terminology the TerminologyScheme to be populated
    */
-  private static void setTerminologyMetadata(TerminologyScheme terminology)
+  private static TerminologyScheme setTerminologyMetadata(TerminologyScheme terminology)
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    UUID id = UUID.fromString(terminology.getSchemeId());
-    String version = terminology.getVersion();
-    multiKeyMap.put(id, version, terminology);
+    Map<UUID,ConceptDescriptor> terms = getTermsFromTerminologyClass(terminology).stream().collect(Collectors.toMap(ConceptDescriptor::getUuid, x -> x));
 
-    List<ConceptDescriptor> terms = getTermsFromTerminologyClass(id, version);
     terminology.setTerms(terms);
+
+    return terminology;
   }
 
   /**
    * Uses reflection to retrieve the terms from the terminology Class.
-   * @param vocabularyId the schemeId for the vocabulary
-   * @param versionTag the version of the terminology
+   * @param terminologyScheme the terminologyScheme
    * @return the terms for the terminology
    */
-  private static List<ConceptDescriptor> getTermsFromTerminologyClass(UUID vocabularyId, String versionTag)
+  private static List<ConceptDescriptor> getTermsFromTerminologyClass(TerminologyScheme terminologyScheme)
         throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    TerminologyScheme conceptDescription = (TerminologyScheme)multiKeyMap.get(vocabularyId, versionTag);
-
-    Class cls = Class.forName(conceptDescription.getName());
+    Class cls = Class.forName(terminologyScheme.getName());
     Object obj = null;
     try {
       obj = cls.getDeclaredConstructor().newInstance();
@@ -202,12 +203,12 @@ public class TermsProvider implements TermsApiInternal {
    * @return a boolean indicating if the testConceptId is an ancestor
    */
   @Override
-  public Answer<Boolean> isAncestor(UUID vocabularyId,   String versionTag,   String conceptId,   String testConceptId  )  {
+  public Answer<Boolean> isAncestor(UUID vocabularyId, String versionTag, String conceptId, String testConceptId)  {
     Answer<ConceptDescriptor> conceptDescriptor = getTerm(vocabularyId, versionTag, conceptId);
     Term[] ancestors = conceptDescriptor.get().getAncestors();
     if(ancestors != null) {
       for (int i = 0; i < ancestors.length; i++) {
-        if (testConceptId.equals(ancestors[i].getConceptId().toString())) {
+        if (testConceptId.equals(ancestors[i].getUuid().toString())) {
           return Answer.of(Boolean.TRUE);
         }
       }
