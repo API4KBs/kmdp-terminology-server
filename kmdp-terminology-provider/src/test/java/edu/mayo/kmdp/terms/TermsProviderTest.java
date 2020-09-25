@@ -26,7 +26,7 @@ class TermsProviderTest {
     @Test
     void testProvider() {
         List<Pointer> termSystems = provider.listTerminologies().orElse(Collections.emptyList());
-        assertEquals(39, termSystems.size());
+        assertEquals(40, termSystems.size());
     }
 
     /**
