@@ -195,4 +195,18 @@ class TermsProviderTest {
         assertFalse(answer.isSuccess() && answer.orElse(false));
     }
 
+    /**
+     * Get a term from KnowledgeProcessingOperation and verify contents
+     */
+    @Test
+    void testLookupTerm_KPO() {
+        String conceptUUID = "c6e34990-85d9-31b2-8a33-f46e0e9f8b33";
+        String conceptId = "c6e34990-85d9-31b2-8a33-f46e0e9f8b33";
+
+        Answer<ConceptDescriptor> answer = provider.lookupTerm(conceptId);
+        assertTrue(answer.isSuccess());
+
+        assertEquals(conceptUUID, answer.get().getUuid().toString());
+    }
+
 }

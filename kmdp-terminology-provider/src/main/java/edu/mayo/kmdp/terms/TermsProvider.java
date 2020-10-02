@@ -14,27 +14,38 @@
 package edu.mayo.kmdp.terms;
 
 import com.google.common.collect.Lists;
+import edu.mayo.kmdp.comparator.Contrastor.Comparison;
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
 import edu.mayo.kmdp.util.JSonUtil;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalQueries;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import javax.inject.Named;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.Term;
+import org.omg.spec.api4kp._20200801.id.VersionTagContrastor;
 import org.omg.spec.api4kp._20200801.services.KPServer;
 import org.omg.spec.api4kp._20200801.services.KnowledgeCarrier;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
 import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
-
-import javax.inject.Named;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -45,10 +56,14 @@ import java.util.stream.Collectors;
 @KPServer
 public class TermsProvider implements TermsApiInternal {
 
+  static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
+
   /**
    *   A map using two keys to identify the TerminologyScheme value
    */
   private static MultiKeyMap multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
+
+  private VersionTagContrastor contrastor = new VersionTagContrastor(this::toInstant);
 
   public TermsProvider()  {
     super();
@@ -112,6 +127,60 @@ public class TermsProvider implements TermsApiInternal {
     }
 
     return Answer.notFound();
+  }
+
+  @Override
+  public Answer<ConceptDescriptor> lookupTerm(String conceptId) {
+    UUID conceptIdAsUuid = UUID.fromString(conceptId);
+
+    String latestVersion = null;
+    ConceptDescriptor latestCD = null;
+
+    for (Object value : multiKeyMap.values()) {
+      TerminologyScheme ts = (TerminologyScheme) value;
+
+      ConceptDescriptor cd = ts.getTerms().get(conceptIdAsUuid);
+      if (cd != null) {
+        String version = ts.getVersion();
+        if (latestVersion == null
+            || contrastor.contrast(version,latestVersion) == Comparison.BROADER) {
+          latestVersion = version;
+          latestCD = reconcile(cd, latestCD);
+        }
+      }
+    }
+    return Answer.of(latestCD);
+  }
+
+  private long toInstant(String version) {
+    String timeComponent = "0";
+
+    if (version.contains("-")) {
+      int split = version.lastIndexOf("-");
+      timeComponent = version.substring(split + 1);
+      version = version.substring(0, split);
+    }
+
+    long base = DateTimeFormatter.ofPattern("yyyyMMdd")
+        .parse(version, TemporalQueries.localDate())
+        .atStartOfDay(ZoneId.systemDefault())
+        .toInstant().toEpochMilli();
+    long detail = Long.parseLong(timeComponent);
+
+    return base + detail;
+  }
+
+
+
+
+  private ConceptDescriptor reconcile(ConceptDescriptor cd1, ConceptDescriptor cd2) {
+    if (!cd1.equals(cd2)) {
+      logger.warn("Found two latest but different versions of the same Concept, "
+          + "most likely due to labels or ancestors. "
+          + "May have to implement a merge strategy, but requirements on performance "
+          + "vs functionality are not clear at this point.");
+    }
+    return cd1;
   }
 
   /**
