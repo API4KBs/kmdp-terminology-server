@@ -209,4 +209,14 @@ class TermsProviderTest {
         assertEquals(conceptUUID, answer.get().getUuid().toString());
     }
 
+    @Test
+    void testChainOperations() {
+        int n = provider.listTerminologies()
+            .map(l -> l.get(0))
+            .flatMap(ptr -> provider.getTerms(ptr.getUuid(),ptr.getVersionTag()))
+            .map(List::size)
+            .orElse(-1);
+        assertTrue(n >= 0);
+    }
+
 }

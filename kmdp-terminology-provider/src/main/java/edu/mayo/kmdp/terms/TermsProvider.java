@@ -36,6 +36,7 @@ import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.Pointer;
+import org.omg.spec.api4kp._20200801.id.SemanticIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.id.VersionTagContrastor;
 import org.omg.spec.api4kp._20200801.services.KPServer;
@@ -45,7 +46,6 @@ import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.core.io.ClassPathResource;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -55,6 +55,8 @@ import org.springframework.core.io.ClassPathResource;
 @Named
 @KPServer
 public class TermsProvider implements TermsApiInternal {
+
+  private static final String TERMINOLOGY_INDEX = "terminologies.json";
 
   static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
 
@@ -77,14 +79,17 @@ public class TermsProvider implements TermsApiInternal {
   public Answer<List<Pointer>> listTerminologies() {
     ArrayList<Pointer> pointers = new ArrayList<>();
 
-    Collection<TerminologyScheme> terms = multiKeyMap.values();
+    Collection<TerminologyScheme> schemes = multiKeyMap.values();
 
-    for(TerminologyScheme term:terms) {
-      Pointer ptr = new Pointer()
-              .withName(term.getName())
-              .withType(KnowledgeAssetTypeSeries.Value_Set.getVersionId())
-              .withResourceId(term.getSeriesId())
-              .withVersionTag(term.getVersion());
+    for(TerminologyScheme scheme : schemes) {
+      Pointer ptr = SemanticIdentifier.newIdAsPointer(
+          scheme.getSeriesId(),
+          scheme.getTag(),
+          scheme.getName(),
+          scheme.getVersion(),
+          "",
+          KnowledgeAssetTypeSeries.Value_Set.getVersionId(),
+          null);
       pointers.add(ptr);
     }
     return Answer.of(pointers);
@@ -192,17 +197,17 @@ public class TermsProvider implements TermsApiInternal {
 
     try {
       // json file is stored in the classes directory during the build
-      Optional<TerminologyScheme[]> optional = JSonUtil
-          .readJson(new ClassPathResource("/terminologies.json").getInputStream(),
-              TerminologyScheme[].class);
-      if (!optional.isPresent()) {
+      Optional<TerminologyScheme[]> optional = JSonUtil.readJson(
+          TermsProvider.class.getResourceAsStream("/" + TERMINOLOGY_INDEX),
+          TerminologyScheme[].class);
+      if (optional.isEmpty()) {
         throw new TermProviderException();
       }
       TerminologyScheme[] terminologies = optional.get();
 
       // for each terminology, set the metadata and terms
       for (TerminologyScheme terminology : terminologies) {
-        UUID id = UUID.fromString(terminology.getSchemeId());
+        UUID id = UUID.fromString(terminology.getTag());
         String version = terminology.getVersion();
 
         multiKeyMap.put(id, version, setTerminologyMetadata(terminology));
@@ -236,7 +241,7 @@ public class TermsProvider implements TermsApiInternal {
    */
   private static List<ConceptDescriptor> getTermsFromTerminologyClass(TerminologyScheme terminologyScheme)
         throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-    Class cls = Class.forName(terminologyScheme.getName());
+    Class<?> cls = Class.forName(terminologyScheme.getName());
     Object obj = null;
     try {
       obj = cls.getDeclaredConstructor().newInstance();
@@ -244,7 +249,7 @@ public class TermsProvider implements TermsApiInternal {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
-    ConceptTerm[] terms = (ConceptTerm[])method.invoke(obj, null);
+    ConceptTerm<?>[] terms = (ConceptTerm<?>[])method.invoke(obj);
 
     return convertTermArrayToListOfDescriptors(terms);
   }

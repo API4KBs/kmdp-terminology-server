@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
 import org.omg.spec.api4kp._20200801.terms.ControlledTerm;
@@ -114,18 +115,28 @@ public class TerminologyIndexer {
             try {
                 TerminologySchemeDescr terminology = new TerminologySchemeDescr();
 
-                Field namespace = subtype.getField("namespace");
+                Field namespaceFld = subtype.getField("namespace");
+                ResourceIdentifier namespace = (ResourceIdentifier) namespaceFld.get(null);
+                Field schemeFld = subtype.getField("schemeURI");
+                ResourceIdentifier schemeUri = (ResourceIdentifier) schemeFld.get(null);
+
+                UUID key = namespace.getVersionUuid();
+                terminology.setKey(key);
+
+                String tag = namespace.getTag();
+                terminology.setTag(tag);
 
                 String name = subtype.getName();
                 terminology.setName(name);
 
-                String version = ((ResourceIdentifier)namespace.get(null)).getVersionTag();
+                String version = namespace.getVersionTag();
                 terminology.setVersion(version);
 
-                String schemeId = ((ResourceIdentifier)namespace.get(null)).getTag();
+                String schemeId = schemeUri.getVersionId().toString();
                 terminology.setSchemeId(schemeId);
 
-                terminology.setSeriesId(((ResourceIdentifier)namespace.get(null)).getResourceId());
+                // 'resourceId' should be 'versionId' and 'namespace' should be 'resourceId'
+                terminology.setSeriesId(namespace.getNamespaceUri());
 
                 terminologyModels.add(terminology);
 
@@ -136,10 +147,28 @@ public class TerminologyIndexer {
     }
 
     private class TerminologySchemeDescr {
+        UUID key;
+        String tag;
         String name;
         String version;
         String schemeId;
         URI seriesId;
+
+        public UUID getKey() {
+            return key;
+        }
+
+        public void setKey(UUID key) {
+            this.key = key;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public void setTag(String tag) {
+            this.tag = tag;
+        }
 
         public URI getSeriesId() {
             return seriesId;

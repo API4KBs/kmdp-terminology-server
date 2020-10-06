@@ -8,29 +8,65 @@ import java.util.UUID;
 
 /**
  * This class defines the parts of the terminology available for the service
+ *
+ * In this context, a Terminology Scheme is a collection of Terms (Concept Descriptors)
+ * with identity and version
+ *
+ * Note that Concepts can be shared between Schemes, and belong to a 'namespace' which
+ * may not be the same namespace that the Scheme is associated to
  */
 public class TerminologyScheme {
 
   /**
-   * The name of the terminology
+   * A UUID-based tag of the terminology Scheme version - used for indexing
+   */
+  private UUID key;
+
+  /**
+   * The 'tag' of the terminology Scheme
+   */
+  private String tag;
+
+  /**
+   * The name of the terminology Scheme
    */
   private String name;
+
   /**
-   * The version of the terminology
+   * The version of the terminology Scheme
    */
   private String version;
+
   /**
-   * Terminology identifier
+   * The fully qualified and versioned URI of the terminology Scheme
    */
   private String schemeId;
+
   /**
-   * URL of the terminology version
+   * The fully qualified, but unversioned, URI of the terminology Scheme
    */
   private URI seriesId;
+
   /**
-   * The terms found in the terminology
+   * The terms found in the terminology Scheme
    */
   private Map<UUID,ConceptDescriptor> terms;
+
+  public UUID getKey() {
+    return key;
+  }
+
+  public void setKey(UUID key) {
+    this.key = key;
+  }
+
+  public String getTag() {
+    return tag;
+  }
+
+  public void setTag(String tag) {
+    this.tag = tag;
+  }
 
   public String getName() {
     return name;
