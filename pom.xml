@@ -13,7 +13,7 @@
   <packaging>pom</packaging>
 
   <artifactId>kmdp-terminology-broker</artifactId>
-  <version>4.8.0-SNAPSHOT</version>
+  <version>4.8.1-SNAPSHOT</version>
 
   <properties>
     <clinical.terms.version>8.0.0-SNAPSHOT</clinical.terms.version>
