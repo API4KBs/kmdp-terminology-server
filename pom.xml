@@ -17,7 +17,7 @@
 
   <properties>
     <clinical.terms.version>8.0.0-SNAPSHOT</clinical.terms.version>
-    <kmd.terms.version>8.0.0-SNAPSHOT</kmd.terms.version>
+    <kmd.terms.version>8.0.1-SNAPSHOT</kmd.terms.version>
   </properties>
 
   <name>KMDP :: Terminology Broker</name>
