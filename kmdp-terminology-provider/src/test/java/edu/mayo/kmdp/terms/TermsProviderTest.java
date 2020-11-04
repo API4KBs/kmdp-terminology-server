@@ -1,6 +1,16 @@
 package edu.mayo.kmdp.terms;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import edu.mayo.ontology.taxonomies.ws.responsecodes.ResponseCodeSeries;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.id.Pointer;
@@ -8,24 +18,22 @@ import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetType;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeoperation.KnowledgeProcessingOperation;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+@SpringBootTest
+@ContextConfiguration(classes = {TermsConfig.class})
 class TermsProviderTest {
 
-    private final TermsProvider provider = new TermsProvider();
+    @Autowired
+    TermsProvider provider;
 
     /**
      * Verify the total number of terminologies
      */
     @Test
     void testProvider() {
-        List<Pointer> termSystems = provider.listTerminologies().orElse(Collections.emptyList());
+        List<Pointer> termSystems = this.provider.listTerminologies().orElse(Collections.emptyList());
         assertEquals(40, termSystems.size());
     }
 

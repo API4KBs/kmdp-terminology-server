@@ -53,7 +53,11 @@ public class TerminologyIndexer {
      */
     public static void main(String... args) {
         String path = args[0];
-        new TerminologyIndexer().execute(path);
+        String filter=null;
+        if(args.length > 1) {
+            filter = args[1];
+        }
+        new TerminologyIndexer().execute(path, filter);
     }
 
     /**
@@ -62,9 +66,9 @@ public class TerminologyIndexer {
      * The method is called by the provider pom using mojo execute.
      * @param path the path for the output file
      */
-    public void execute(String path) {
+    public void execute(String path, String filter) {
         try {
-            readFilesToFindTerminologies();
+            readFilesToFindTerminologies(filter);
 
             ObjectMapper mapper = new ObjectMapper();
             ObjectWriter writer = mapper.writer(new DefaultPrettyPrinter());
@@ -100,7 +104,7 @@ public class TerminologyIndexer {
      * Store all the terminologies in a Collection
      * @throws IllegalAccessException if there are issues getting the metadata from the file
      */
-    protected void readFilesToFindTerminologies() throws IllegalAccessException {
+    protected void readFilesToFindTerminologies(String filter) throws IllegalAccessException {
         terminologyModels = new ArrayList<>();
 
         // Get the taxonomy files that extend ControlledTerm
@@ -138,7 +142,9 @@ public class TerminologyIndexer {
                 // 'resourceId' should be 'versionId' and 'namespace' should be 'resourceId'
                 terminology.setSeriesId(namespace.getNamespaceUri());
 
-                terminologyModels.add(terminology);
+                if (filter == null || terminology.getSchemeId().matches(filter)) {
+                    terminologyModels.add(terminology);
+                }
 
             } catch (NoSuchFieldException e) {
                 // those files without namespace will be ignored

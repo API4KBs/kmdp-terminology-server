@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
 import javax.inject.Named;
 import org.apache.commons.collections.map.LinkedMap;
 import org.apache.commons.collections.map.MultiKeyMap;
@@ -46,6 +47,8 @@ import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -54,16 +57,22 @@ import org.slf4j.LoggerFactory;
  */
 @Named
 @KPServer
+@Component
 public class TermsProvider implements TermsApiInternal {
 
-  private static final String TERMINOLOGY_INDEX = "terminologies.json";
+  @Value("${terms.terminologyFile:terminologies.json}")
+  protected String terminologyFile;
 
   static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
 
   /**
    *   A map using two keys to identify the TerminologyScheme value
    */
-  private static MultiKeyMap multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
+  private MultiKeyMap multiKeyMap;
+  @PostConstruct
+  private void populateMap() {
+    multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
+  }
 
   private VersionTagContrastor contrastor = new VersionTagContrastor(this::toInstant);
 
@@ -192,13 +201,13 @@ public class TermsProvider implements TermsApiInternal {
    * Reads the JSON file and populate the TerminologyModels
    * @return MultiKeyMap where id and version are the keys and TerminologyScheme is the value
    */
-  private static MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
+  private MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
     MultiKeyMap multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
 
     try {
       // json file is stored in the classes directory during the build
       Optional<TerminologyScheme[]> optional = JSonUtil.readJson(
-          TermsProvider.class.getResourceAsStream("/" + TERMINOLOGY_INDEX),
+          TermsProvider.class.getResourceAsStream("/" + terminologyFile),
           TerminologyScheme[].class);
       if (optional.isEmpty()) {
         throw new TermProviderException();
@@ -209,6 +218,7 @@ public class TermsProvider implements TermsApiInternal {
       for (TerminologyScheme terminology : terminologies) {
         UUID id = UUID.fromString(terminology.getTag());
         String version = terminology.getVersion();
+        System.out.println("Found in terminology file: " + terminologyFile + " id: " + id + " version: " + version + " name: " + terminology.getName());
 
         multiKeyMap.put(id, version, setTerminologyMetadata(terminology));
       }

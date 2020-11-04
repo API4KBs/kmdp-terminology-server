@@ -24,7 +24,7 @@ public class TerminologyIndexerTest {
     void testWriteTerminologies() {
         try {
             File tmpFile = new File(tmp.toFile(), "test.json");
-            provider.execute(tmpFile.getPath());
+            provider.execute(tmpFile.getPath(), null);
         } catch (Exception e) {
             fail(e.getMessage());
         }
