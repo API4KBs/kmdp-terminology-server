@@ -23,13 +23,14 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
-import org.omg.spec.api4kp._20200801.terms.ControlledTerm;
+import org.omg.spec.api4kp._20200801.series.Series;
+import org.omg.spec.api4kp._20200801.terms.TypedTerm;
 import org.reflections.Reflections;
 
 /**
@@ -109,38 +110,40 @@ public class TerminologyIndexer {
 
         // Get the taxonomy files that extend ControlledTerm
         // TODO - Must move the base package name to a 'registry' class in kmdp-registry
-        Set<Class<? extends ControlledTerm>> subTypes =
-            Arrays.asList("edu.mayo.ontology.taxonomies", "org.omg.spec.api4kp").stream()
-                .flatMap(pack -> new Reflections(pack).getSubTypesOf(ControlledTerm.class).stream())
-                    .collect(Collectors.toSet());
+        Set<Class<? extends TypedTerm>> subTypes =
+            Stream.of("edu.mayo.ontology.taxonomies", "org.omg.spec.api4kp")
+                .flatMap(pack -> new Reflections(pack)
+                    .getSubTypesOf(TypedTerm.class).stream())
+                .filter(Class::isEnum)
+                .filter(klass -> ! Series.class.isAssignableFrom(klass))
+                .collect(Collectors.toSet());
 
         // Read all the files.  If does not have namespace, is not a terminology and exception is ignored.
         for(Class<?> subtype:subTypes)  {
             try {
                 TerminologySchemeDescr terminology = new TerminologySchemeDescr();
 
-                Field namespaceFld = subtype.getField("namespace");
-                ResourceIdentifier namespace = (ResourceIdentifier) namespaceFld.get(null);
-                Field schemeFld = subtype.getField("schemeURI");
-                ResourceIdentifier schemeUri = (ResourceIdentifier) schemeFld.get(null);
 
-                UUID key = namespace.getVersionUuid();
+                Field schemeFld = subtype.getField("schemeVersionIdentifier");
+                ResourceIdentifier schemeVersionIdentifier = (ResourceIdentifier) schemeFld.get(null);
+
+                UUID key = schemeVersionIdentifier.getVersionUuid();
                 terminology.setKey(key);
 
-                String tag = namespace.getTag();
+                String tag = schemeVersionIdentifier.getTag();
                 terminology.setTag(tag);
 
                 String name = subtype.getName();
                 terminology.setName(name);
 
-                String version = namespace.getVersionTag();
+                String version = schemeVersionIdentifier.getVersionTag();
                 terminology.setVersion(version);
 
-                String schemeId = schemeUri.getVersionId().toString();
+                String schemeId = schemeVersionIdentifier.getVersionId().toString();
                 terminology.setSchemeId(schemeId);
 
                 // 'resourceId' should be 'versionId' and 'namespace' should be 'resourceId'
-                terminology.setSeriesId(namespace.getNamespaceUri());
+                terminology.setSeriesId(schemeVersionIdentifier.getResourceId() );
 
                 if (filter == null || terminology.getSchemeId().matches(filter)) {
                     terminologyModels.add(terminology);

@@ -259,7 +259,7 @@ public class TermsProvider implements TermsApiInternal {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
-    ConceptTerm<?>[] terms = (ConceptTerm<?>[])method.invoke(obj);
+    ConceptTerm[] terms = (ConceptTerm[])method.invoke(obj);
 
     return convertTermArrayToListOfDescriptors(terms);
   }
@@ -309,7 +309,7 @@ public class TermsProvider implements TermsApiInternal {
     ArrayList<ConceptDescriptor> descriptors = new ArrayList<>();
     if(terms!= null) {
       for (Term term : terms) {
-        ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm<?>) term);
+        ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm) term);
         descriptors.add(descriptor);
       }
     }
