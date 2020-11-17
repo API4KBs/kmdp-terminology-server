@@ -34,7 +34,7 @@ class TermsProviderTest {
     @Test
     void testProvider() {
         List<Pointer> termSystems = this.provider.listTerminologies().orElse(Collections.emptyList());
-        assertEquals(40, termSystems.size());
+        assertEquals(41, termSystems.size());
     }
 
     /**
