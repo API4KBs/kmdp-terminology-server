@@ -15,8 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.Term;
-import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetType;
-import org.omg.spec.api4kp._20200801.taxonomy.knowledgeoperation.KnowledgeProcessingOperation;
+import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
+import org.omg.spec.api4kp._20200801.taxonomy.knowledgeoperation.KnowledgeProcessingOperationSeries;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -34,7 +34,7 @@ class TermsProviderTest {
     @Test
     void testProvider() {
         List<Pointer> termSystems = this.provider.listTerminologies().orElse(Collections.emptyList());
-        assertEquals(41, termSystems.size());
+        assertEquals(42, termSystems.size());
     }
 
     /**
@@ -42,8 +42,8 @@ class TermsProviderTest {
      */
     @Test
     void testGetTerms_KPOv1() {
-        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(
-            KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
                 "20200801", "");
         assertEquals(80, answer.get().size());
     }
@@ -53,7 +53,7 @@ class TermsProviderTest {
      */
     @Test
     void testGetTerms_KPOvBad() {
-        UUID uuid = UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID);
+        UUID uuid = KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid();
         assertThrows(NullPointerException.class,
             () -> provider.getTerms(uuid, "20191208", "")
         );
@@ -64,8 +64,9 @@ class TermsProviderTest {
      */
     @Test
     void testGetTerms_KAv1() {
-        Answer<List<ConceptDescriptor>> answer = provider.getTerms(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
-                "20190801", "");
+        Answer<List<ConceptDescriptor>> answer = provider.getTerms(
+            KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
+            "20190801", "");
         assertEquals(38, answer.get().size());
     }
 
@@ -82,7 +83,8 @@ class TermsProviderTest {
         String namespace = "https://www.omg.org/spec/API4KP/20200801/taxonomy/KnowledgeOperation";
         String ancestorName = "knowledge resource assembly task";
 
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
                 "20200801", conceptId);
         assertTrue(answer.isSuccess());
         ConceptDescriptor cd = answer.get();
@@ -112,7 +114,8 @@ class TermsProviderTest {
         String namespace = "https://www.omg.org/spec/API4KP/20200801/taxonomy/KnowledgeAssetType";
         String ancestorName = "Decision Task Model";
 
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeAssetType.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(
+            KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
             "20190801", conceptId);
         assertTrue(answer.isSuccess());
         ConceptDescriptor cd = answer.get();
@@ -135,8 +138,8 @@ class TermsProviderTest {
     @Test
     void testGetTerm_KPOv1_ConIdNotFind() {
         String conceptId = "notRealConceptId";
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(
-            KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
             "20190801", conceptId);
         assertNotNull(answer);
         assertTrue(answer.isFailure());
@@ -149,7 +152,8 @@ class TermsProviderTest {
     @Test
     void testGetTerm_KPOv1_VersionNotFound() {
         String conceptId = "f212fc95-964d-3c1a-b75c-d4ff0269e18c";
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
             "19650724", conceptId);
         assertNotNull(answer);
         assertTrue(answer.isFailure());
@@ -164,7 +168,8 @@ class TermsProviderTest {
         String conceptId = "d76a9299-4e72-36c1-a261-2265afe11582";
         String[] ancestorNames = {"selection task"};
 
-        Answer<ConceptDescriptor> answer = provider.getTerm(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<ConceptDescriptor> answer = provider.getTerm(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
             "20200801", conceptId);
         assertTrue(answer.isSuccess());
         ConceptDescriptor cd = answer.get();
@@ -185,7 +190,8 @@ class TermsProviderTest {
         String conceptId = "d76a9299-4e72-36c1-a261-2265afe11582";
         String ancestorConceptId = "a5628370-845c-350f-b0e7-6cab66aac127";
 
-        Answer<Boolean> answer = provider.isAncestor(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<Boolean> answer = provider.isAncestor(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
             "20200801", conceptId, ancestorConceptId);
         assertTrue(answer.isSuccess() && answer.orElse(false));
     }
@@ -198,7 +204,8 @@ class TermsProviderTest {
         String conceptId = "d76a9299-4e72-36c1-a261-2265afe11582";
         String ancestorConceptId = "https://www.omg.org/spec/API4KP/20200801/taxonomy/KnowledgeOperation#a5628370-845c-350f-b0e7";
 
-        Answer<Boolean> answer = provider.isAncestor(UUID.fromString(KnowledgeProcessingOperation.SCHEME_ID),
+        Answer<Boolean> answer = provider.isAncestor(
+            KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
             "20200801", conceptId, ancestorConceptId);
         assertFalse(answer.isSuccess() && answer.orElse(false));
     }

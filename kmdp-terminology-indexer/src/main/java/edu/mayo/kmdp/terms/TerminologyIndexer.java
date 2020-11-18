@@ -127,23 +127,29 @@ public class TerminologyIndexer {
                 Field schemeFld = subtype.getField("schemeVersionIdentifier");
                 ResourceIdentifier schemeVersionIdentifier = (ResourceIdentifier) schemeFld.get(null);
 
+                Field seriesFld = subtype.getField("schemeSeriesIdentifier");
+                ResourceIdentifier schemeSeriesIdentifier = (ResourceIdentifier) seriesFld.get(null);
+
                 UUID key = schemeVersionIdentifier.getVersionUuid();
                 terminology.setKey(key);
 
-                String tag = schemeVersionIdentifier.getTag();
-                terminology.setTag(tag);
+                UUID seriesUUID = schemeSeriesIdentifier.getUuid();
+                terminology.setSchemeUUID(seriesUUID);
 
-                String name = subtype.getName();
-                terminology.setName(name);
+                String tag = schemeSeriesIdentifier.getTag();
+                terminology.setTag(tag);
 
                 String version = schemeVersionIdentifier.getVersionTag();
                 terminology.setVersion(version);
+
+                String name = subtype.getName();
+                terminology.setName(name);
 
                 String schemeId = schemeVersionIdentifier.getVersionId().toString();
                 terminology.setSchemeId(schemeId);
 
                 // 'resourceId' should be 'versionId' and 'namespace' should be 'resourceId'
-                terminology.setSeriesId(schemeVersionIdentifier.getResourceId() );
+                terminology.setSeriesId(schemeVersionIdentifier.getResourceId());
 
                 if (filter == null || terminology.getSchemeId().matches(filter)) {
                     terminologyModels.add(terminology);
@@ -157,6 +163,7 @@ public class TerminologyIndexer {
 
     private class TerminologySchemeDescr {
         UUID key;
+        UUID schemeUUID;
         String tag;
         String name;
         String version;
@@ -169,6 +176,14 @@ public class TerminologyIndexer {
 
         public void setKey(UUID key) {
             this.key = key;
+        }
+
+        public UUID getSchemeUUID() {
+            return schemeUUID;
+        }
+
+        public void setSchemeUUID(UUID schemeUUID) {
+            this.schemeUUID = schemeUUID;
         }
 
         public String getTag() {

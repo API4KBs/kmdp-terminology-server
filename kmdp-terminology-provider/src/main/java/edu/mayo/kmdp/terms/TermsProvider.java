@@ -93,6 +93,7 @@ public class TermsProvider implements TermsApiInternal {
     for(TerminologyScheme scheme : schemes) {
       Pointer ptr = SemanticIdentifier.newIdAsPointer(
           scheme.getSeriesId(),
+          scheme.getSchemeUUID(),
           scheme.getTag(),
           scheme.getName(),
           scheme.getVersion(),
@@ -216,7 +217,7 @@ public class TermsProvider implements TermsApiInternal {
 
       // for each terminology, set the metadata and terms
       for (TerminologyScheme terminology : terminologies) {
-        UUID id = UUID.fromString(terminology.getTag());
+        UUID id = terminology.getSchemeUUID();
         String version = terminology.getVersion();
         System.out.println("Found in terminology file: " + terminologyFile + " id: " + id + " version: " + version + " name: " + terminology.getName());
 

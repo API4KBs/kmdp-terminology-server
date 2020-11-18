@@ -23,7 +23,13 @@ public class TerminologyScheme {
   private UUID key;
 
   /**
+   * A UUID-based
+   */
+  private UUID schemeUUID;
+
+  /**
    * The 'tag' of the terminology Scheme
+   * May or may not be UUID based, and may not coincide with the schemeUUID
    */
   private String tag;
 
@@ -112,4 +118,11 @@ public class TerminologyScheme {
     super();
   }
 
+  public UUID getSchemeUUID() {
+    return schemeUUID;
+  }
+
+  public void setSchemeUUID(UUID schemeUUID) {
+    this.schemeUUID = schemeUUID;
+  }
 }
