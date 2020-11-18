@@ -16,6 +16,7 @@ import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
+import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype._20190801.KnowledgeAssetType;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeoperation.KnowledgeProcessingOperationSeries;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ class TermsProviderTest {
     @Test
     void testProvider() {
         List<Pointer> termSystems = this.provider.listTerminologies().orElse(Collections.emptyList());
-        assertEquals(42, termSystems.size());
+        assertTrue(termSystems.size() > 40);
     }
 
     /**
@@ -45,7 +46,7 @@ class TermsProviderTest {
         Answer<List<ConceptDescriptor>> answer = provider.getTerms(
             KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
                 "20200801", "");
-        assertEquals(80, answer.get().size());
+        assertEquals(80 * 2, answer.get().size());
     }
 
     /**
@@ -67,7 +68,7 @@ class TermsProviderTest {
         Answer<List<ConceptDescriptor>> answer = provider.getTerms(
             KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
             "20190801", "");
-        assertEquals(38, answer.get().size());
+        assertEquals(38 * 2, answer.get().size());
     }
 
     /**
@@ -232,6 +233,18 @@ class TermsProviderTest {
             .map(List::size)
             .orElse(-1);
         assertTrue(n >= 0);
+    }
+
+
+    @Test
+    void testLookupTermByQualifiedName() {
+        KnowledgeAssetTypeSeries ruleType = KnowledgeAssetTypeSeries.Clinical_Rule;
+
+        Answer<ConceptDescriptor> cd = provider.getTerm(
+            KnowledgeAssetType.schemeVersionIdentifier.getUuid(),
+            KnowledgeAssetType.schemeVersionIdentifier.getVersionTag(),
+            ruleType.getUuid().toString());
+        assertTrue(cd.isSuccess());
     }
 
 }

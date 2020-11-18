@@ -13,29 +13,34 @@
  */
 package edu.mayo.kmdp.terms;
 
-import com.google.common.collect.Lists;
+import static edu.mayo.kmdp.util.JSonUtil.readJson;
+import static edu.mayo.kmdp.util.Util.isEmpty;
+import static edu.mayo.kmdp.util.Util.uuid;
+import static org.omg.spec.api4kp._20200801.id.SemanticIdentifier.newKey;
+
 import edu.mayo.kmdp.comparator.Contrastor.Comparison;
 import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
-import edu.mayo.kmdp.util.JSonUtil;
+import edu.mayo.kmdp.util.NameUtils;
+import edu.mayo.kmdp.util.Util;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalQueries;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.inject.Named;
-import org.apache.commons.collections.map.LinkedMap;
-import org.apache.commons.collections.map.MultiKeyMap;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
+import org.omg.spec.api4kp._20200801.id.KeyIdentifier;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.SemanticIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
@@ -68,7 +73,8 @@ public class TermsProvider implements TermsApiInternal {
   /**
    *   A map using two keys to identify the TerminologyScheme value
    */
-  private MultiKeyMap multiKeyMap;
+  private Map<KeyIdentifier,TerminologyScheme> multiKeyMap;
+
   @PostConstruct
   private void populateMap() {
     multiKeyMap = readTerminologyJsonFileIntoTerminologyModels();
@@ -78,6 +84,18 @@ public class TermsProvider implements TermsApiInternal {
 
   public TermsProvider()  {
     super();
+  }
+
+  /**
+   * Static constructor, used for testing
+   * @param terminologyFile
+   * @return
+   */
+  public static TermsProvider newTermsProvider(String terminologyFile) {
+    TermsProvider tp = new TermsProvider();
+    tp.terminologyFile = terminologyFile;
+    tp.multiKeyMap = tp.readTerminologyJsonFileIntoTerminologyModels();
+    return tp;
   }
 
   /**
@@ -91,15 +109,17 @@ public class TermsProvider implements TermsApiInternal {
     Collection<TerminologyScheme> schemes = multiKeyMap.values();
 
     for(TerminologyScheme scheme : schemes) {
-      Pointer ptr = SemanticIdentifier.newIdAsPointer(
+      Pointer ptr = SemanticIdentifier.newVersionIdAsPointer(
+          URI.create(NameUtils.removeTrailingPart(scheme.getSeriesId().toString())),
           scheme.getSeriesId(),
+          URI.create(scheme.getSchemeId()),
           scheme.getSchemeUUID(),
           scheme.getTag(),
-          scheme.getName(),
           scheme.getVersion(),
-          "",
-          KnowledgeAssetTypeSeries.Value_Set.getVersionId(),
-          null);
+          scheme.getName(),
+          null,
+          KnowledgeAssetTypeSeries.Value_Set.getResourceId(),
+          "application/json");
       pointers.add(ptr);
     }
     return Answer.of(pointers);
@@ -114,8 +134,8 @@ public class TermsProvider implements TermsApiInternal {
    */
 
   public Answer<List<ConceptDescriptor>> getTerms(UUID vocabularyId, String versionTag, String label) {
-    TerminologyScheme termModel = (TerminologyScheme)multiKeyMap.get(vocabularyId, versionTag);
-    return Answer.of(Lists.newArrayList(termModel.getTerms().values()));
+    TerminologyScheme termModel = multiKeyMap.get(newKey(vocabularyId,versionTag));
+    return Answer.of(new ArrayList<>(termModel.getTerms().values()));
   }
 
   /**
@@ -129,12 +149,14 @@ public class TermsProvider implements TermsApiInternal {
    */
   @Override
   public Answer<ConceptDescriptor> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
-    TerminologyScheme terminologyScheme = (TerminologyScheme)multiKeyMap.get(vocabularyId, versionTag);
+    TerminologyScheme terminologyScheme = multiKeyMap.get(newKey(vocabularyId,versionTag));
 
-    if(terminologyScheme != null) {
+    if(terminologyScheme != null && ! isEmpty(conceptId)) {
       Map<UUID,ConceptDescriptor> terms = terminologyScheme.getTerms();
 
-      UUID conceptIdAsUuid = UUID.fromString(conceptId);
+      UUID conceptIdAsUuid = Util.isUUID(conceptId)
+          ? Util.toUUID(conceptId)
+          : Util.uuid(conceptId);
 
       if (terms.containsKey(conceptIdAsUuid)) {
         return Answer.of(terms.get(conceptIdAsUuid));
@@ -151,9 +173,7 @@ public class TermsProvider implements TermsApiInternal {
     String latestVersion = null;
     ConceptDescriptor latestCD = null;
 
-    for (Object value : multiKeyMap.values()) {
-      TerminologyScheme ts = (TerminologyScheme) value;
-
+    for (TerminologyScheme ts : multiKeyMap.values()) {
       ConceptDescriptor cd = ts.getTerms().get(conceptIdAsUuid);
       if (cd != null) {
         String version = ts.getVersion();
@@ -200,35 +220,33 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Reads the JSON file and populate the TerminologyModels
-   * @return MultiKeyMap where id and version are the keys and TerminologyScheme is the value
+   * @return Map where id+version is the key, and TerminologyScheme is the value
    */
-  private MultiKeyMap readTerminologyJsonFileIntoTerminologyModels() {
-    MultiKeyMap multiKeyMap = MultiKeyMap.decorate(new LinkedMap());
+  private Map<KeyIdentifier, TerminologyScheme> readTerminologyJsonFileIntoTerminologyModels() {
+    Map<KeyIdentifier,TerminologyScheme> mkm = new LinkedHashMap<>();
 
     try {
       // json file is stored in the classes directory during the build
-      Optional<TerminologyScheme[]> optional = JSonUtil.readJson(
+      TerminologyScheme[] terminologies = readJson(
           TermsProvider.class.getResourceAsStream("/" + terminologyFile),
-          TerminologyScheme[].class);
-      if (optional.isEmpty()) {
-        throw new TermProviderException();
-      }
-      TerminologyScheme[] terminologies = optional.get();
+          TerminologyScheme[].class)
+          .orElseThrow(TermProviderException::new);
 
       // for each terminology, set the metadata and terms
       for (TerminologyScheme terminology : terminologies) {
         UUID id = terminology.getSchemeUUID();
         String version = terminology.getVersion();
-        System.out.println("Found in terminology file: " + terminologyFile + " id: " + id + " version: " + version + " name: " + terminology.getName());
+        logger.info("Found in terminology file: {} id: {} version: {} name: {} ",
+            terminologyFile, id, version, terminology.getName());
 
-        multiKeyMap.put(id, version, setTerminologyMetadata(terminology));
+        mkm.put(newKey(id, version), setTerminologyMetadata(terminology));
       }
     } catch (Exception e) {
       e.printStackTrace();
       throw new TermProviderException();
     }
 
-    return multiKeyMap;
+    return mkm;
   }
 
   /**
@@ -238,7 +256,14 @@ public class TermsProvider implements TermsApiInternal {
    */
   private static TerminologyScheme setTerminologyMetadata(TerminologyScheme terminology)
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    Map<UUID,ConceptDescriptor> terms = getTermsFromTerminologyClass(terminology).stream().collect(Collectors.toMap(ConceptDescriptor::getUuid, x -> x));
+    Map<UUID,ConceptDescriptor> terms = new HashMap<>();
+
+    getTermsFromTerminologyClass(terminology).forEach(cd -> {
+      // index by uuid, tag and resourceId
+      terms.put(cd.getUuid(), cd);
+      terms.put(uuid(cd.getTag()), cd);
+      terms.put(uuid(cd.getResourceId().toString()), cd);
+    });
 
     terminology.setTerms(terms);
 
