@@ -60,9 +60,7 @@ import org.springframework.stereotype.Component;
  *  If the tests fail, be sure to run parent build first so file is created in target/classes
  *  Terminology metadata and terms are available through services.
  */
-@Named
 @KPServer
-@Component
 public class TermsProvider implements TermsApiInternal {
 
   @Value("${terms.terminologyFile:terminologies.json}")
