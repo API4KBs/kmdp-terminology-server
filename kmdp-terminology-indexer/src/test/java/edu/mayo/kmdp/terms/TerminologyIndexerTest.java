@@ -12,22 +12,22 @@ import org.junit.jupiter.api.io.TempDir;
  */
 public class TerminologyIndexerTest {
 
-    @TempDir
-    public Path tmp;
+  @TempDir
+  public Path tmp;
 
-    TerminologyIndexer provider = new TerminologyIndexer();
+  TerminologyIndexer provider = new TerminologyIndexer();
 
-    /**
-     * Test will fail if an exception is thrown when creating the JSON output file.
-     */
-    @Test
-    void testWriteTerminologies() {
-        try {
-            File tmpFile = new File(tmp.toFile(), "test.json");
-            provider.execute(tmpFile.getPath(), null);
-        } catch (Exception e) {
-            fail(e.getMessage());
-        }
+  /**
+   * Test will fail if an exception is thrown when creating the JSON output file.
+   */
+  @Test
+  void testWriteTerminologies() {
+    try {
+      File tmpFile = new File(tmp.toFile(), "test.json");
+      provider.execute(tmpFile.getPath(), null);
+    } catch (Exception e) {
+      fail(e.getMessage());
     }
+  }
 
 }

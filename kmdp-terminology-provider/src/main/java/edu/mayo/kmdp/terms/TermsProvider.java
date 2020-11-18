@@ -1,11 +1,11 @@
 /**
  * Copyright © 2018 Mayo Clinic (RSTKNOWLEDGEMGMT@mayo.edu)
- *
+ * <p>
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
- *
+ * <p>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p>
  * Unless required by applicable law or agreed to in writing, software distributed under the License
  * is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
  * or implied. See the License for the specific language governing permissions and limitations under
@@ -73,7 +73,7 @@ public class TermsProvider implements TermsApiInternal {
   /**
    *   A map using two keys to identify the TerminologyScheme value
    */
-  private Map<KeyIdentifier,TerminologyScheme> multiKeyMap;
+  private Map<KeyIdentifier, TerminologyScheme> multiKeyMap;
 
   @PostConstruct
   private void populateMap() {
@@ -82,7 +82,7 @@ public class TermsProvider implements TermsApiInternal {
 
   private VersionTagContrastor contrastor = new VersionTagContrastor(this::toInstant);
 
-  public TermsProvider()  {
+  public TermsProvider() {
     super();
   }
 
@@ -108,7 +108,7 @@ public class TermsProvider implements TermsApiInternal {
 
     Collection<TerminologyScheme> schemes = multiKeyMap.values();
 
-    for(TerminologyScheme scheme : schemes) {
+    for (TerminologyScheme scheme : schemes) {
       Pointer ptr = SemanticIdentifier.newVersionIdAsPointer(
           URI.create(NameUtils.removeTrailingPart(scheme.getSeriesId().toString())),
           scheme.getSeriesId(),
@@ -133,8 +133,9 @@ public class TermsProvider implements TermsApiInternal {
    * @return the terms within a specified version of terminology
    */
 
-  public Answer<List<ConceptDescriptor>> getTerms(UUID vocabularyId, String versionTag, String label) {
-    TerminologyScheme termModel = multiKeyMap.get(newKey(vocabularyId,versionTag));
+  public Answer<List<ConceptDescriptor>> getTerms(UUID vocabularyId, String versionTag,
+      String label) {
+    TerminologyScheme termModel = multiKeyMap.get(newKey(vocabularyId, versionTag));
     return Answer.of(new ArrayList<>(termModel.getTerms().values()));
   }
 
@@ -144,15 +145,15 @@ public class TermsProvider implements TermsApiInternal {
    * @param vocabularyId - The id of the terminology system
    * @param versionTag - The version of the terminology
    * @param conceptId - The conceptId of the term
-   * @return  retrieve a data payload that include terms, labels, definitions, relationships
+   * @return retrieve a data payload that include terms, labels, definitions, relationships
    * for the concept identified by that ID
    */
   @Override
   public Answer<ConceptDescriptor> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
-    TerminologyScheme terminologyScheme = multiKeyMap.get(newKey(vocabularyId,versionTag));
+    TerminologyScheme terminologyScheme = multiKeyMap.get(newKey(vocabularyId, versionTag));
 
-    if(terminologyScheme != null && ! isEmpty(conceptId)) {
-      Map<UUID,ConceptDescriptor> terms = terminologyScheme.getTerms();
+    if (terminologyScheme != null && !isEmpty(conceptId)) {
+      Map<UUID, ConceptDescriptor> terms = terminologyScheme.getTerms();
 
       UUID conceptIdAsUuid = Util.isUUID(conceptId)
           ? Util.toUUID(conceptId)
@@ -178,7 +179,7 @@ public class TermsProvider implements TermsApiInternal {
       if (cd != null) {
         String version = ts.getVersion();
         if (latestVersion == null
-            || contrastor.contrast(version,latestVersion) == Comparison.BROADER) {
+            || contrastor.contrast(version, latestVersion) == Comparison.BROADER) {
           latestVersion = version;
           latestCD = reconcile(cd, latestCD);
         }
@@ -206,8 +207,6 @@ public class TermsProvider implements TermsApiInternal {
   }
 
 
-
-
   private ConceptDescriptor reconcile(ConceptDescriptor cd1, ConceptDescriptor cd2) {
     if (!cd1.equals(cd2)) {
       logger.warn("Found two latest but different versions of the same Concept, "
@@ -223,7 +222,7 @@ public class TermsProvider implements TermsApiInternal {
    * @return Map where id+version is the key, and TerminologyScheme is the value
    */
   private Map<KeyIdentifier, TerminologyScheme> readTerminologyJsonFileIntoTerminologyModels() {
-    Map<KeyIdentifier,TerminologyScheme> mkm = new LinkedHashMap<>();
+    Map<KeyIdentifier, TerminologyScheme> mkm = new LinkedHashMap<>();
 
     try {
       // json file is stored in the classes directory during the build
@@ -256,7 +255,7 @@ public class TermsProvider implements TermsApiInternal {
    */
   private static TerminologyScheme setTerminologyMetadata(TerminologyScheme terminology)
       throws ClassNotFoundException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-    Map<UUID,ConceptDescriptor> terms = new HashMap<>();
+    Map<UUID, ConceptDescriptor> terms = new HashMap<>();
 
     getTermsFromTerminologyClass(terminology).forEach(cd -> {
       // index by uuid, tag and resourceId
@@ -275,17 +274,18 @@ public class TermsProvider implements TermsApiInternal {
    * @param terminologyScheme the terminologyScheme
    * @return the terms for the terminology
    */
-  private static List<ConceptDescriptor> getTermsFromTerminologyClass(TerminologyScheme terminologyScheme)
-        throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+  private static List<ConceptDescriptor> getTermsFromTerminologyClass(
+      TerminologyScheme terminologyScheme)
+      throws ClassNotFoundException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
     Class<?> cls = Class.forName(terminologyScheme.getName());
     Object obj = null;
     try {
       obj = cls.getDeclaredConstructor().newInstance();
-    } catch(Exception e)  {
+    } catch (Exception e) {
       // expected exception
     }
     Method method = cls.getDeclaredMethod("values");
-    ConceptTerm[] terms = (ConceptTerm[])method.invoke(obj);
+    ConceptTerm[] terms = (ConceptTerm[]) method.invoke(obj);
 
     return convertTermArrayToListOfDescriptors(terms);
   }
@@ -299,7 +299,8 @@ public class TermsProvider implements TermsApiInternal {
    * @return a list of any ancestors
    */
   @Override
-  public Answer<List<ConceptDescriptor>> listAncestors(UUID vocabularyId, String versionTag, String conceptId) {
+  public Answer<List<ConceptDescriptor>> listAncestors(UUID vocabularyId, String versionTag,
+      String conceptId) {
     Answer<ConceptDescriptor> conceptDescriptor = getTerm(vocabularyId, versionTag, conceptId);
     return Answer.of(convertTermArrayToListOfDescriptors(conceptDescriptor.get().getAncestors()));
   }
@@ -313,10 +314,11 @@ public class TermsProvider implements TermsApiInternal {
    * @return a boolean indicating if the testConceptId is an ancestor
    */
   @Override
-  public Answer<Boolean> isAncestor(UUID vocabularyId, String versionTag, String conceptId, String testConceptId)  {
+  public Answer<Boolean> isAncestor(UUID vocabularyId, String versionTag, String conceptId,
+      String testConceptId) {
     Answer<ConceptDescriptor> conceptDescriptor = getTerm(vocabularyId, versionTag, conceptId);
     Term[] ancestors = conceptDescriptor.get().getAncestors();
-    if(ancestors != null) {
+    if (ancestors != null) {
       for (int i = 0; i < ancestors.length; i++) {
         if (testConceptId.equals(ancestors[i].getUuid().toString())) {
           return Answer.of(Boolean.TRUE);
@@ -331,9 +333,9 @@ public class TermsProvider implements TermsApiInternal {
    * @param terms the array of Terms
    * @return the List of ConceptDescriptors
    */
-  private static List<ConceptDescriptor> convertTermArrayToListOfDescriptors(Term[] terms)  {
+  private static List<ConceptDescriptor> convertTermArrayToListOfDescriptors(Term[] terms) {
     ArrayList<ConceptDescriptor> descriptors = new ArrayList<>();
-    if(terms!= null) {
+    if (terms != null) {
       for (Term term : terms) {
         ConceptDescriptor descriptor = ConceptDescriptor.toConceptDescriptor((ConceptTerm) term);
         descriptors.add(descriptor);
@@ -355,7 +357,8 @@ public class TermsProvider implements TermsApiInternal {
    * @return
    */
   @Override
-  public Answer<KnowledgeCarrier> getVocabulary(UUID vocabularyId, String versionTag, String xAccept) {
+  public Answer<KnowledgeCarrier> getVocabulary(UUID vocabularyId, String versionTag,
+      String xAccept) {
     return Answer.unsupported();
   }
 

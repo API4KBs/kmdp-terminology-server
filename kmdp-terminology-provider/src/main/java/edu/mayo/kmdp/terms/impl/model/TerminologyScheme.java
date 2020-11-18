@@ -1,19 +1,18 @@
 package edu.mayo.kmdp.terms.impl.model;
 
-import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
-
 import java.net.URI;
 import java.util.Map;
 import java.util.UUID;
+import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 
 /**
  * This class defines the parts of the terminology available for the service
- *
- * In this context, a Terminology Scheme is a collection of Terms (Concept Descriptors)
- * with identity and version
- *
- * Note that Concepts can be shared between Schemes, and belong to a 'namespace' which
- * may not be the same namespace that the Scheme is associated to
+ * <p>
+ * In this context, a Terminology Scheme is a collection of Terms (Concept Descriptors) with
+ * identity and version
+ * <p>
+ * Note that Concepts can be shared between Schemes, and belong to a 'namespace' which may not be
+ * the same namespace that the Scheme is associated to
  */
 public class TerminologyScheme {
 
@@ -28,8 +27,8 @@ public class TerminologyScheme {
   private UUID schemeUUID;
 
   /**
-   * The 'tag' of the terminology Scheme
-   * May or may not be UUID based, and may not coincide with the schemeUUID
+   * The 'tag' of the terminology Scheme May or may not be UUID based, and may not coincide with the
+   * schemeUUID
    */
   private String tag;
 
@@ -56,7 +55,7 @@ public class TerminologyScheme {
   /**
    * The terms found in the terminology Scheme
    */
-  private Map<UUID,ConceptDescriptor> terms;
+  private Map<UUID, ConceptDescriptor> terms;
 
   public UUID getKey() {
     return key;
@@ -106,11 +105,11 @@ public class TerminologyScheme {
     this.seriesId = seriesId;
   }
 
-  public Map<UUID,ConceptDescriptor> getTerms() {
+  public Map<UUID, ConceptDescriptor> getTerms() {
     return terms;
   }
 
-  public void setTerms(Map<UUID,ConceptDescriptor>  terms) {
+  public void setTerms(Map<UUID, ConceptDescriptor> terms) {
     this.terms = terms;
   }
 

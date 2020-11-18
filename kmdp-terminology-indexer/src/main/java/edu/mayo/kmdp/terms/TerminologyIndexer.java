@@ -34,13 +34,13 @@ import org.omg.spec.api4kp._20200801.terms.TypedTerm;
 import org.reflections.Reflections;
 
 /**
- * This class reads the terminology files for values which are defined in the TerminologyScheme.
- * It outputs those values in a json file.
+ * This class reads the terminology files for values which are defined in the TerminologyScheme. It
+ * outputs those values in a json file.
  */
 public class TerminologyIndexer {
 
   /**
-   *  All the terminologies read from the taxonomies package
+   * All the terminologies read from the taxonomies package
    */
   private Collection<TerminologySchemeDescr> terminologyModels;
 
@@ -49,7 +49,6 @@ public class TerminologyIndexer {
   }
 
   /**
-   *
    * @param args the path for the output file
    */
   public static void main(String... args) {
@@ -62,9 +61,9 @@ public class TerminologyIndexer {
   }
 
   /**
-   * Gets the files and stores the terminology metadata as JSON Objects.
-   * Write the output file in the path location.
-   * The method is called by the provider pom using mojo execute.
+   * Gets the files and stores the terminology metadata as JSON Objects. Write the output file in
+   * the path location. The method is called by the provider pom using mojo execute.
+   *
    * @param path the path for the output file
    */
   public void execute(String path, String filter) {
@@ -100,9 +99,9 @@ public class TerminologyIndexer {
   }
 
   /**
-   * Read the files and determine which is a terminology.
-   * For each of the terminologies, get the metadata and store as TerminologyScheme.
-   * Store all the terminologies in a Collection
+   * Read the files and determine which is a terminology. For each of the terminologies, get the
+   * metadata and store as TerminologyScheme. Store all the terminologies in a Collection
+   *
    * @throws IllegalAccessException if there are issues getting the metadata from the file
    */
   protected void readFilesToFindTerminologies(String filter) throws IllegalAccessException {
