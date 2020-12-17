@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
-import javax.inject.Named;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.KeyIdentifier;
@@ -53,7 +52,6 @@ import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
@@ -206,7 +204,7 @@ public class TermsProvider implements TermsApiInternal {
 
 
   private ConceptDescriptor reconcile(ConceptDescriptor cd1, ConceptDescriptor cd2) {
-    if (!cd1.equals(cd2)) {
+    if (cd2 != null && !cd1.equals(cd2)) {
       logger.warn("Found two latest but different versions of the same Concept, "
           + "most likely due to labels or ancestors. "
           + "May have to implement a merge strategy, but requirements on performance "
