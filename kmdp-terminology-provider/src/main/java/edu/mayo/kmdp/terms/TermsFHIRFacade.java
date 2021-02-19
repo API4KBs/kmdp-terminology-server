@@ -139,7 +139,7 @@ public class TermsFHIRFacade implements TermsApiInternal {
     UUID uuid = Util.ensureUUID(conceptId)
         .or(() -> Util.ensureUUID(NameUtils.getTrailingPart(conceptId)))
         .orElseGet(() -> Util.uuid(conceptId));
-    return Answer.of(conceptIndex.get(uuid));
+    return Answer.ofNullable(conceptIndex.get(uuid));
   }
 
   void reindex() {

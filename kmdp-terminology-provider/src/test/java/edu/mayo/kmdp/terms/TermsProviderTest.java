@@ -252,4 +252,8 @@ class TermsProviderTest {
     assertTrue(cd.isSuccess());
   }
 
+  @Test
+  void testLookupFailure() {
+    assertTrue(provider.lookupTerm(UUID.randomUUID().toString()).isNotFound());
+  }
 }

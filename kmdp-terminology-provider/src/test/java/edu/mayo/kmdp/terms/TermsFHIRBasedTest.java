@@ -151,6 +151,11 @@ class TermsFHIRBasedTest {
     assertSame(cd1, cd12);
   }
 
-
+  @Test
+  void testLookupFailure() {
+    String random = UUID.randomUUID().toString();
+    assertTrue(server.lookupTerm(random).isNotFound());
+    assertTrue(refServer.lookupTerm(random).isNotFound());
+  }
 
 }

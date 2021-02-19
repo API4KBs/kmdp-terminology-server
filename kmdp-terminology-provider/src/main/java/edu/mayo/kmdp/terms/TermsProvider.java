@@ -45,14 +45,12 @@ import org.omg.spec.api4kp._20200801.id.SemanticIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.id.VersionTagContrastor;
 import org.omg.spec.api4kp._20200801.services.KPComponent;
-import org.omg.spec.api4kp._20200801.services.KPServer;
 import org.omg.spec.api4kp._20200801.services.KnowledgeCarrier;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
 import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -177,7 +175,9 @@ public class TermsProvider implements TermsApiInternal {
 
   @Override
   public Answer<ConceptDescriptor> lookupTerm(String conceptId) {
-    UUID conceptIdAsUuid = UUID.fromString(conceptId);
+    UUID conceptIdAsUuid = Util.ensureUUID(conceptId)
+        .or(() -> Util.ensureUUID(NameUtils.getTrailingPart(conceptId)))
+        .orElseGet(() -> Util.uuid(conceptId));
 
     String latestVersion = null;
     ConceptDescriptor latestCD = null;
