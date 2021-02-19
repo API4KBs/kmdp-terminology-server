@@ -44,6 +44,7 @@ import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.SemanticIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.id.VersionTagContrastor;
+import org.omg.spec.api4kp._20200801.services.KPComponent;
 import org.omg.spec.api4kp._20200801.services.KPServer;
 import org.omg.spec.api4kp._20200801.services.KnowledgeCarrier;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
@@ -51,14 +52,17 @@ import org.omg.spec.api4kp._20200801.terms.ConceptTerm;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  *  This class reads a terminology json file created by the terminology indexer.
  *  If the tests fail, be sure to run parent build first so file is created in target/classes
  *  Terminology metadata and terms are available through services.
  */
-@KPServer
+@Component
+@KPComponent(implementation = "enum")
 public class TermsProvider implements TermsApiInternal {
 
   @Value("${terms.terminologyFile:terminologies.json}")
@@ -84,6 +88,14 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Static constructor, used for testing
+   * @return
+   */
+  public static TermsProvider newTermsProvider() {
+    return newTermsProvider("terminologies.json");
+  }
+
+  /**
+   Static constructor, used for testing
    * @param terminologyFile
    * @return
    */
@@ -181,7 +193,7 @@ public class TermsProvider implements TermsApiInternal {
         }
       }
     }
-    return Answer.of(latestCD);
+    return Answer.ofNullable(latestCD);
   }
 
   private long toInstant(String version) {
@@ -205,7 +217,7 @@ public class TermsProvider implements TermsApiInternal {
 
   private ConceptDescriptor reconcile(ConceptDescriptor cd1, ConceptDescriptor cd2) {
     if (cd2 != null && !cd1.equals(cd2)) {
-      logger.warn("Found two latest but different versions of the same Concept, "
+      logger.trace("Found two latest but different versions of the same Concept, "
           + "most likely due to labels or ancestors. "
           + "May have to implement a merge strategy, but requirements on performance "
           + "vs functionality are not clear at this point.");

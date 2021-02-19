@@ -14,6 +14,10 @@
 
   <name>KMDP :: Terminology Broker :: Provider</name>
 
+  <properties>
+    <kmdp.servers.impl>4.9.9-SNAPSHOT</kmdp.servers.impl>
+  </properties>
+
   <build>
     <plugins>
       <plugin>
@@ -52,6 +56,21 @@
   <dependencies>
 
     <dependency>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-asset-repository-service-client</artifactId>
+      <version>${kmdp.impl.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>ca.uhn.hapi.fhir</groupId>
+      <artifactId>hapi-fhir-structures-dstu3</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
@@ -68,10 +87,14 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
+      <groupId>edu.mayo.kmdp</groupId>
+      <artifactId>kmdp-knowledge-asset-repository-core</artifactId>
+      <version>${kmdp.servers.impl}</version>
+      <scope>test</scope>
     </dependency>
+
 
   </dependencies>
 
