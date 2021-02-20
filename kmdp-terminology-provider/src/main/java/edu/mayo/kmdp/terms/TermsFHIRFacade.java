@@ -13,6 +13,7 @@
  */
 package edu.mayo.kmdp.terms;
 
+import static edu.mayo.kmdp.util.Util.as;
 import static edu.mayo.kmdp.util.Util.isEmpty;
 import static org.omg.spec.api4kp._20200801.AbstractCarrier.codedRep;
 import static org.omg.spec.api4kp._20200801.id.SemanticIdentifier.newId;
@@ -46,13 +47,11 @@ import org.omg.spec.api4kp._20200801.id.KeyIdentifier;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.services.KPComponent;
-import org.omg.spec.api4kp._20200801.services.KPServer;
 import org.omg.spec.api4kp._20200801.surrogate.KnowledgeAsset;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -158,9 +157,18 @@ public class TermsFHIRFacade implements TermsApiInternal {
     Answer<KnowledgeAsset> ans =
         cat.getKnowledgeAssetVersion(karsPointer.getUuid(), karsPointer.getVersionTag());
     ans.ifPresent(asset -> {
+      if (asset.getSecondaryId().isEmpty()) {
+        logger.warn("Missing secondary ID for asset {} - {}",
+            asset.getAssetId().getUuid(), asset.getName());
+        logger.trace("Asset primary ID should be SemVer-based : {}, "
+            + " while missing secondary ID should be date-based",
+            asset.getAssetId().getVersionTag());
+      }
       Answer<CodeSystem> artf = fetchCodeSystemArtifact(karsPointer);
       // secondary ID : Taxonomies use date-based versioning - future reconsider?
-      Pointer taxonomyPtr = asset.getSecondaryId().get(0).toPointer();
+      Pointer taxonomyPtr = asset.getSecondaryId().isEmpty()
+          ? asset.getAssetId().toPointer()
+          : asset.getSecondaryId().get(0).toPointer();
       KeyIdentifier key = taxonomyPtr.asKey();
       schemePointers.put(key, taxonomyPtr);
       artf.ifPresent(cs -> indexCodeSystem(key, cs));
