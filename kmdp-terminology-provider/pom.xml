@@ -15,7 +15,7 @@
   <name>KMDP :: Terminology Broker :: Provider</name>
 
   <properties>
-    <kmdp.servers.impl>4.9.9</kmdp.servers.impl>
+    <kmdp.servers.impl>4.9.10-SNAPSHOT</kmdp.servers.impl>
   </properties>
 
   <build>
