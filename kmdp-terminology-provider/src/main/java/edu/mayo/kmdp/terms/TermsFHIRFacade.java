@@ -105,6 +105,12 @@ public class TermsFHIRFacade implements TermsApiInternal {
   }
 
   @Override
+  public Answer<Void> clearTerminologies() {
+    reindex();
+    return online ? Answer.succeed() : Answer.unsupported();
+  }
+
+  @Override
   public Answer<ConceptDescriptor> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
     if (!online) {
       return Answer.unsupported();
