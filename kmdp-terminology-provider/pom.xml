@@ -7,7 +7,7 @@
   <parent>
     <groupId>edu.mayo.kmdp</groupId>
     <artifactId>kmdp-terminology-broker</artifactId>
-    <version>4.9.12</version>
+    <version>4.9.13-SNAPSHOT</version>
   </parent>
 
   <artifactId>kmdp-terminology-provider</artifactId>
@@ -15,7 +15,7 @@
   <name>KMDP :: Terminology Broker :: Provider</name>
 
   <properties>
-    <kmdp.servers.impl>4.9.12</kmdp.servers.impl>
+    <kmdp.servers.impl>4.9.13-SNAPSHOT</kmdp.servers.impl>
   </properties>
 
   <build>
