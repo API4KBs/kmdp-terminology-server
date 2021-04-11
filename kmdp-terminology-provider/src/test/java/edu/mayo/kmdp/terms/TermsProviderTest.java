@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.omg.spec.api4kp._20200801.taxonomy.clinicalknowledgeassettype.ClinicalKnowledgeAssetTypeSeries.Clinical_Rule;
 
 import edu.mayo.ontology.taxonomies.ws.responsecodes.ResponseCodeSeries;
 import java.util.Arrays;
@@ -17,18 +18,20 @@ import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.services.KPComponent;
+import org.omg.spec.api4kp._20200801.taxonomy.clinicalknowledgeassettype._20210401.ClinicalKnowledgeAssetType;
+import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetType;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
-import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype._20190801.KnowledgeAssetType;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeoperation.KnowledgeProcessingOperationSeries;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 
 @SpringBootTest
 @ContextConfiguration(classes = {TermsTestConfig.class})
 class TermsProviderTest {
+
+  static final String API4KP_VERSION_TAG = "20210401";
 
   @Autowired
   @KPComponent(implementation = "enum")
@@ -40,7 +43,7 @@ class TermsProviderTest {
   @Test
   void testProvider() {
     List<Pointer> termSystems = this.provider.listTerminologies().orElse(Collections.emptyList());
-    assertTrue(termSystems.size() > 40);
+    assertTrue(termSystems.size() > 20);
   }
 
   /**
@@ -50,7 +53,7 @@ class TermsProviderTest {
   void testGetTerms_KPOv1() {
     Answer<List<ConceptDescriptor>> answer = provider.getTerms(
         KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
-        "20200801", "");
+        API4KP_VERSION_TAG, "");
     assertEquals(80 * 2, answer.get().size());
   }
 
@@ -72,8 +75,8 @@ class TermsProviderTest {
   void testGetTerms_KAv1() {
     Answer<List<ConceptDescriptor>> answer = provider.getTerms(
         KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
-        "20190801", "");
-    assertEquals(38 * 2, answer.get().size());
+        API4KP_VERSION_TAG, "");
+    assertEquals(31 * 2, answer.get().size());
   }
 
   /**
@@ -91,7 +94,7 @@ class TermsProviderTest {
 
     Answer<ConceptDescriptor> answer = provider.getTerm(
         KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
-        "20200801", conceptId);
+        API4KP_VERSION_TAG, conceptId);
     assertTrue(answer.isSuccess());
     ConceptDescriptor cd = answer.get();
 
@@ -122,19 +125,19 @@ class TermsProviderTest {
 
     Answer<ConceptDescriptor> answer = provider.getTerm(
         KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
-        "20190801", conceptId);
+        API4KP_VERSION_TAG, conceptId);
     assertTrue(answer.isSuccess());
     ConceptDescriptor cd = answer.get();
 
     assertEquals(conceptUUID, cd.getUuid().toString());
-    assertEquals(label, cd.getName());
+    assertTrue(label.equalsIgnoreCase(cd.getName()));
     assertEquals(ref, cd.getReferentId().toString());
     assertEquals(tag, cd.getTag());
     assertEquals(namespace, cd.getNamespaceUri().toString());
     assertEquals(1, cd.getAncestors().length);
     Term[] terms = cd.getAncestors();
     for (Term term : terms) {
-      assertEquals(ancestorName, term.getName());
+      assertTrue(ancestorName.equalsIgnoreCase(term.getName()));
     }
   }
 
@@ -176,7 +179,7 @@ class TermsProviderTest {
 
     Answer<ConceptDescriptor> answer = provider.getTerm(
         KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
-        "20200801", conceptId);
+        API4KP_VERSION_TAG, conceptId);
     assertTrue(answer.isSuccess());
     ConceptDescriptor cd = answer.get();
 
@@ -198,7 +201,7 @@ class TermsProviderTest {
 
     Answer<Boolean> answer = provider.isAncestor(
         KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
-        "20200801", conceptId, ancestorConceptId);
+        API4KP_VERSION_TAG, conceptId, ancestorConceptId);
     assertTrue(answer.isSuccess() && answer.orElse(false));
   }
 
@@ -212,7 +215,7 @@ class TermsProviderTest {
 
     Answer<Boolean> answer = provider.isAncestor(
         KnowledgeProcessingOperationSeries.schemeSeriesIdentifier.getUuid(),
-        "20200801", conceptId, ancestorConceptId);
+        API4KP_VERSION_TAG, conceptId, ancestorConceptId);
     assertFalse(answer.isSuccess() && answer.orElse(false));
   }
 
@@ -243,11 +246,11 @@ class TermsProviderTest {
 
   @Test
   void testLookupTermByQualifiedName() {
-    KnowledgeAssetTypeSeries ruleType = KnowledgeAssetTypeSeries.Clinical_Rule;
+    KnowledgeAssetType ruleType = Clinical_Rule;
 
     Answer<ConceptDescriptor> cd = provider.getTerm(
-        KnowledgeAssetType.schemeVersionIdentifier.getUuid(),
-        KnowledgeAssetType.schemeVersionIdentifier.getVersionTag(),
+        ClinicalKnowledgeAssetType.schemeVersionIdentifier.getUuid(),
+        ClinicalKnowledgeAssetType.schemeVersionIdentifier.getVersionTag(),
         ruleType.getUuid().toString());
     assertTrue(cd.isSuccess());
   }

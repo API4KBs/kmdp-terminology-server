@@ -13,7 +13,6 @@
  */
 package edu.mayo.kmdp.terms;
 
-import static edu.mayo.kmdp.util.Util.as;
 import static edu.mayo.kmdp.util.Util.isEmpty;
 import static org.omg.spec.api4kp._20200801.AbstractCarrier.codedRep;
 import static org.omg.spec.api4kp._20200801.id.SemanticIdentifier.newId;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -45,6 +45,7 @@ import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.IdentifierConstants;
 import org.omg.spec.api4kp._20200801.id.KeyIdentifier;
 import org.omg.spec.api4kp._20200801.id.Pointer;
+import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.services.KPComponent;
 import org.omg.spec.api4kp._20200801.surrogate.KnowledgeAsset;
@@ -170,7 +171,7 @@ public class TermsFHIRFacade implements TermsApiInternal {
             + " while missing secondary ID should be date-based",
             asset.getAssetId().getVersionTag());
       }
-      Answer<CodeSystem> artf = fetchCodeSystemArtifact(karsPointer);
+      Optional<CodeSystem> artf = fetchCodeSystemArtifact(asset);
       // secondary ID : Taxonomies use date-based versioning - future reconsider?
       Pointer taxonomyPtr = asset.getSecondaryId().isEmpty()
           ? asset.getAssetId().toPointer()
@@ -188,8 +189,37 @@ public class TermsFHIRFacade implements TermsApiInternal {
         .forEach(cd -> conceptIndex.put(cd.getUuid(), cd));
   }
 
-  private Answer<CodeSystem> fetchCodeSystemArtifact(Pointer karsPointer) {
-    return repo.getKnowledgeAssetCanonicalCarrier(karsPointer.getUuid(), codedRep(FHIR_STU3))
+  private Optional<CodeSystem> fetchCodeSystemArtifact(KnowledgeAsset asset) {
+    if (asset.getCarriers().isEmpty()) {
+      return Optional.empty();
+    } else if (asset.getCarriers().size() == 1) {
+      return repo.getKnowledgeAssetVersionCanonicalCarrier(
+          asset.getAssetId().getUuid(),
+          asset.getAssetId().getVersionTag(),
+          codedRep(FHIR_STU3))
+          .flatOpt(AbstractCarrier::asBinary)
+          .map(ByteArrayInputStream::new)
+          .map(bais -> fhirParser.parseResource(CodeSystem.class, bais))
+          .getOptionalValue();
+    } else {
+      return asset.getCarriers().stream()
+          .map(carrier -> fetchCodeSystemArtifact(asset.getAssetId(), carrier.getArtifactId()))
+          .flatMap(Answer::trimStream)
+          .reduce(this::mergeCodeSystems);
+    }
+  }
+
+  private CodeSystem mergeCodeSystems(CodeSystem cs, CodeSystem cs2) {
+    cs.getConcept().addAll(cs2.getConcept());
+    return cs;
+  }
+
+  private Answer<CodeSystem> fetchCodeSystemArtifact(
+      ResourceIdentifier assetId, ResourceIdentifier artifactId) {
+    return repo.getKnowledgeAssetCarrierVersion(
+        assetId.getUuid(), assetId.getVersionTag(),
+        artifactId.getUuid(), artifactId.getVersionTag(),
+        codedRep(FHIR_STU3))
         .flatOpt(AbstractCarrier::asBinary)
         .map(ByteArrayInputStream::new)
         .map(bais -> fhirParser.parseResource(CodeSystem.class, bais));
