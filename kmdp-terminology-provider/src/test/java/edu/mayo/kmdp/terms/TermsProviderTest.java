@@ -76,7 +76,7 @@ class TermsProviderTest {
     Answer<List<ConceptDescriptor>> answer = provider.getTerms(
         KnowledgeAssetTypeSeries.schemeSeriesIdentifier.getUuid(),
         API4KP_VERSION_TAG, "");
-    assertEquals(31 * 2, answer.get().size());
+    assertEquals(32 * 2, answer.get().size());
   }
 
   /**
