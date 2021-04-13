@@ -7,13 +7,13 @@
   <parent>
     <groupId>edu.mayo.kmdp</groupId>
     <artifactId>kmdp-terminology-service-base</artifactId>
-    <version>9.0.12-SNAPSHOT</version>
+    <version>9.0.12</version>
   </parent>
 
   <packaging>pom</packaging>
 
   <artifactId>kmdp-terminology-broker</artifactId>
-  <version>4.9.13-SNAPSHOT</version>
+  <version>4.9.13</version>
 
   <name>KMDP :: Terminology Broker</name>
 
