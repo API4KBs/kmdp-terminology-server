@@ -12,7 +12,6 @@ import org.omg.spec.api4kp._20200801.services.KPComponent;
 import org.omg.spec.api4kp._20200801.services.KPServer;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 @KPServer
@@ -39,6 +38,11 @@ public class TermsBrokerImpl implements TermsApiInternal {
 
   List<TermsApiInternal> providers() {
     return Arrays.asList(fhirAssetDrivenTerms, enumDrivenTerms);
+  }
+
+  @Override
+  public Answer<Void> clearTerminologies() {
+    return this.fhirAssetDrivenTerms.clearTerminologies();
   }
 
   @Override
