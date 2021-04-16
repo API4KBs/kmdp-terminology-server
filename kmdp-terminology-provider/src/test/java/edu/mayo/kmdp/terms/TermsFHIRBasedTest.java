@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.omg.spec.api4kp._20200801.taxonomy.clinicalknowledgeassettype.ClinicalKnowledgeAssetTypeSeries.Clinical_Rule;
 import static org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries.Assessment_Model;
 
+import edu.mayo.kmdp.repository.asset.KnowledgeAssetRepositoryServerProperties;
 import edu.mayo.kmdp.repository.asset.KnowledgeAssetRepositoryService;
 import java.util.Collections;
 import java.util.List;
@@ -33,7 +34,9 @@ class TermsFHIRBasedTest {
 
   @BeforeAll
   static void init() {
-    KnowledgeAssetRepositoryService kars = KnowledgeAssetRepositoryService.selfContainedRepository();
+    KnowledgeAssetRepositoryService kars = KnowledgeAssetRepositoryService.selfContainedRepository(
+        new KnowledgeAssetRepositoryServerProperties(
+            TermsFHIRBasedTest.class.getResourceAsStream("/application.test.properties")));
     prepopulateWithKnownKMDTaxonomy(kars);
     refServer = TermsProvider.newTermsProvider();
     server = new TermsFHIRFacade(

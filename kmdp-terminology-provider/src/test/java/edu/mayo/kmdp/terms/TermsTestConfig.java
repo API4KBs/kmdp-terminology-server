@@ -15,6 +15,7 @@ package edu.mayo.kmdp.terms;
 
 import static edu.mayo.kmdp.terms.TermsTestUtil.prepopulate;
 
+import edu.mayo.kmdp.repository.asset.KnowledgeAssetRepositoryServerProperties;
 import edu.mayo.kmdp.repository.asset.KnowledgeAssetRepositoryService;
 import java.net.URI;
 import org.omg.spec.api4kp._20200801.api.repository.asset.v4.KnowledgeAssetCatalogApi;
@@ -34,7 +35,9 @@ public class TermsTestConfig {
   @Primary
   @KPComponent(implementation = "fhir")
   public TermsApiInternal fhirTerms() {
-    KnowledgeAssetRepositoryService kars = KnowledgeAssetRepositoryService.selfContainedRepository();
+    KnowledgeAssetRepositoryService kars = KnowledgeAssetRepositoryService.selfContainedRepository(
+        new KnowledgeAssetRepositoryServerProperties(
+            TermsFHIRBasedTest.class.getResourceAsStream("/application.test.properties")));
     prepopulate(
         URI.create("https://ontology.mayo.edu/taxonomies/ClinicalTasks#"
             + "7fee57de-ad70-384b-ba8c-c03be5e2d80f"),
