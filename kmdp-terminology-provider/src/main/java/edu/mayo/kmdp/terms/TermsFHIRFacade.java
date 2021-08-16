@@ -157,7 +157,7 @@ public class TermsFHIRFacade implements TermsApiInternal {
     if (!online) {
       logger.error(
           "TermsFHIRFacade reindex was not successful.  Unable to access KAC.  Content was not updated.");
-      return new Answer<Void>().of(ResponseCodeSeries.NotFound)
+      return Answer.of(ResponseCodeSeries.NotFound)
           .withExplanation(
               "TermsFHIRFacade reindex was not successful.  Unable to access KAC.  Content was not updated.");
 
@@ -241,15 +241,23 @@ public class TermsFHIRFacade implements TermsApiInternal {
   }
 
   private void transferContentToPrimary() {
-    schemePointers = tempSchemePointers.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    schemeIndex = tempSchemeIndex.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    conceptIndex = tempConceptIndex.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    schemePointers.clear();
+    schemePointers.putAll(tempSchemePointers);
+
+    schemeIndex.clear();
+    schemeIndex.putAll(tempSchemeIndex);
+
+    conceptIndex.clear();
+    conceptIndex.putAll(tempConceptIndex);
+
+    if (!schemePointers.equals(tempSchemePointers) ||
+        !schemeIndex.equals(tempSchemeIndex) ||
+        !conceptIndex.equals(tempConceptIndex)) {
+      logger.error("Failed transfer of content to the primary maps during reindex.");
+    }
+    tempSchemePointers = null;
+    tempSchemeIndex = null;
+    tempConceptIndex = null;
   }
 
   private ConceptDescriptor toConceptDescriptor(ConceptDefinitionComponent cd, CodeSystem cs) {
