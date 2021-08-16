@@ -32,12 +32,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
-import org.apache.commons.lang3.SerializationUtils;
 import org.hl7.fhir.dstu3.model.CodeSystem;
 import org.hl7.fhir.dstu3.model.CodeSystem.ConceptDefinitionComponent;
 import org.omg.spec.api4kp._20200801.AbstractCarrier;
@@ -51,7 +49,6 @@ import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
 import org.omg.spec.api4kp._20200801.id.Term;
 import org.omg.spec.api4kp._20200801.services.KPComponent;
-import org.omg.spec.api4kp._20200801.services.KnowledgeCarrier;
 import org.omg.spec.api4kp._20200801.surrogate.KnowledgeAsset;
 import org.omg.spec.api4kp._20200801.taxonomy.knowledgeassettype.KnowledgeAssetTypeSeries;
 import org.omg.spec.api4kp._20200801.terms.model.ConceptDescriptor;
@@ -78,9 +75,9 @@ public class TermsFHIRFacade implements TermsApiInternal {
   private Map<KeyIdentifier, CodeSystem> schemeIndex = new HashMap<>();
   private Map<UUID, ConceptDescriptor> conceptIndex = new HashMap<>();
 
-  private Map<KeyIdentifier, Pointer> schemePointersBackup = new HashMap<>();
-  private Map<KeyIdentifier, CodeSystem> schemeIndexBackup = new HashMap<>();
-  private Map<UUID, ConceptDescriptor> conceptIndexBackup = new HashMap<>();
+  private Map<KeyIdentifier, Pointer> tempSchemePointers = new HashMap<>();
+  private Map<KeyIdentifier, CodeSystem> tempSchemeIndex = new HashMap<>();
+  private Map<UUID, ConceptDescriptor> tempConceptIndex = new HashMap<>();
 
   public TermsFHIRFacade() {
     // nothing to do - @PostConstruct will initialize the data structures
@@ -156,24 +153,25 @@ public class TermsFHIRFacade implements TermsApiInternal {
   }
 
   Answer<Void> reindex() {
-    backupContent();
-    clear();
-
     online = cat.getKnowledgeAssetCatalog().isSuccess();
     if (!online) {
-      restoreBackups();
+      logger.error(
+          "TermsFHIRFacade reindex was not successful.  Unable to access KAC.  Content was not updated.");
       return new Answer<Void>().of(ResponseCodeSeries.NotFound)
-          .withExplanation("TermsFHIRFacade reindex was not successful.  Reloaded previous content.");
+          .withExplanation(
+              "TermsFHIRFacade reindex was not successful.  Unable to access KAC.  Content was not updated.");
 
     }
 
     Answer<Void> ans = cat
         .listKnowledgeAssets(KnowledgeAssetTypeSeries.Lexicon.getTag(), null, null, 0, -1)
         .forEach(Pointer.class, this::indexCodeSystemAsset);
-    if(!ans.isSuccess())  {
-      ans.withExplanation("TermsFHIRFacade reindex was not successful. Reloaded previous content.");
-      restoreBackups();
+    if (!ans.isSuccess()) {
+      logger.error("TermsFHIRFacade reindex was not successful. Original content unchanged.");
+      ans.withExplanation(
+          "TermsFHIRFacade reindex was not successful. Original content unchanged.");
     }
+    transferContentToPrimary();
     return ans;
   }
 
@@ -194,16 +192,16 @@ public class TermsFHIRFacade implements TermsApiInternal {
           ? asset.getAssetId().toPointer()
           : asset.getSecondaryId().get(0).toPointer();
       KeyIdentifier key = taxonomyPtr.asKey();
-      schemePointers.put(key, taxonomyPtr);
+      tempSchemePointers.put(key, taxonomyPtr);
       artf.ifPresent(cs -> indexCodeSystem(key, cs));
     });
   }
 
   private void indexCodeSystem(KeyIdentifier key, CodeSystem cs) {
-    schemeIndex.put(key, cs);
+    tempSchemeIndex.put(key, cs);
     cs.getConcept().stream()
         .map(cd -> toConceptDescriptor(cd, cs))
-        .forEach(cd -> conceptIndex.put(cd.getUuid(), cd));
+        .forEach(cd -> tempConceptIndex.put(cd.getUuid(), cd));
   }
 
   private Optional<CodeSystem> fetchCodeSystemArtifact(KnowledgeAsset asset) {
@@ -242,32 +240,14 @@ public class TermsFHIRFacade implements TermsApiInternal {
         .map(bais -> fhirParser.parseResource(CodeSystem.class, bais));
   }
 
-  private void clear() {
-    schemePointers.clear();
-    schemeIndex.clear();
-    conceptIndex.clear();
-  }
-
-  private void backupContent()  {
-    schemePointersBackup = schemePointers.entrySet()
+  private void transferContentToPrimary() {
+    schemePointers = tempSchemePointers.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    schemeIndexBackup = schemeIndex.entrySet()
+    schemeIndex = tempSchemeIndex.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    conceptIndexBackup = conceptIndex.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-  }
-
-  private void restoreBackups()  {
-    schemePointers = schemePointersBackup.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    schemeIndex = schemeIndexBackup.entrySet()
-        .stream()
-        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    conceptIndex = conceptIndexBackup.entrySet()
+    conceptIndex = tempConceptIndex.entrySet()
         .stream()
         .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
