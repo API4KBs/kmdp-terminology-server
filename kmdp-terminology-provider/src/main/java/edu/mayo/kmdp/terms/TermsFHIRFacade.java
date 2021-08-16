@@ -71,13 +71,9 @@ public class TermsFHIRFacade implements TermsApiInternal {
   protected KnowledgeAssetRepositoryApi repo;
   boolean online;
 
-  private Map<KeyIdentifier, Pointer> schemePointers = new HashMap<>();
-  private Map<KeyIdentifier, CodeSystem> schemeIndex = new HashMap<>();
-  private Map<UUID, ConceptDescriptor> conceptIndex = new HashMap<>();
-
-  private Map<KeyIdentifier, Pointer> tempSchemePointers = new HashMap<>();
-  private Map<KeyIdentifier, CodeSystem> tempSchemeIndex = new HashMap<>();
-  private Map<UUID, ConceptDescriptor> tempConceptIndex = new HashMap<>();
+  private final Map<KeyIdentifier, Pointer> schemePointers = new HashMap<>();
+  private final Map<KeyIdentifier, CodeSystem> schemeIndex = new HashMap<>();
+  private final Map<UUID, ConceptDescriptor> conceptIndex = new HashMap<>();
 
   public TermsFHIRFacade() {
     // nothing to do - @PostConstruct will initialize the data structures
@@ -111,8 +107,10 @@ public class TermsFHIRFacade implements TermsApiInternal {
 
   @Override
   public Answer<Void> clearTerminologies() {
-    reindex();
-    return online ? Answer.succeed() : Answer.unsupported();
+    if (! online) {
+      return Answer.unsupported();
+    }
+    return reindex();
   }
 
   @Override
@@ -160,22 +158,22 @@ public class TermsFHIRFacade implements TermsApiInternal {
       return Answer.of(ResponseCodeSeries.NotFound)
           .withExplanation(
               "TermsFHIRFacade reindex was not successful.  Unable to access KAC.  Content was not updated.");
-
     }
 
+    Index collector = new Index();
     Answer<Void> ans = cat
         .listKnowledgeAssets(KnowledgeAssetTypeSeries.Lexicon.getTag(), null, null, 0, -1)
-        .forEach(Pointer.class, this::indexCodeSystemAsset);
+        .forEach(Pointer.class, ptr -> indexCodeSystemAsset(ptr, collector));
     if (!ans.isSuccess()) {
       logger.error("TermsFHIRFacade reindex was not successful. Original content unchanged.");
       ans.withExplanation(
           "TermsFHIRFacade reindex was not successful. Original content unchanged.");
     }
-    transferContentToPrimary();
+    transferContentToPrimary(collector);
     return ans;
   }
 
-  private void indexCodeSystemAsset(Pointer karsPointer) {
+  private void indexCodeSystemAsset(Pointer karsPointer, Index collector) {
     Answer<KnowledgeAsset> ans =
         cat.getKnowledgeAssetVersion(karsPointer.getUuid(), karsPointer.getVersionTag());
     ans.ifPresent(asset -> {
@@ -192,16 +190,16 @@ public class TermsFHIRFacade implements TermsApiInternal {
           ? asset.getAssetId().toPointer()
           : asset.getSecondaryId().get(0).toPointer();
       KeyIdentifier key = taxonomyPtr.asKey();
-      tempSchemePointers.put(key, taxonomyPtr);
-      artf.ifPresent(cs -> indexCodeSystem(key, cs));
+      collector.tempSchemePointers.put(key, taxonomyPtr);
+      artf.ifPresent(cs -> indexCodeSystem(key, cs, collector));
     });
   }
 
-  private void indexCodeSystem(KeyIdentifier key, CodeSystem cs) {
-    tempSchemeIndex.put(key, cs);
+  private void indexCodeSystem(KeyIdentifier key, CodeSystem cs, Index collector) {
+    collector.tempSchemeIndex.put(key, cs);
     cs.getConcept().stream()
         .map(cd -> toConceptDescriptor(cd, cs))
-        .forEach(cd -> tempConceptIndex.put(cd.getUuid(), cd));
+        .forEach(cd -> collector.tempConceptIndex.put(cd.getUuid(), cd));
   }
 
   private Optional<CodeSystem> fetchCodeSystemArtifact(KnowledgeAsset asset) {
@@ -240,24 +238,17 @@ public class TermsFHIRFacade implements TermsApiInternal {
         .map(bais -> fhirParser.parseResource(CodeSystem.class, bais));
   }
 
-  private void transferContentToPrimary() {
+  private synchronized void transferContentToPrimary(Index collector) {
     schemePointers.clear();
-    schemePointers.putAll(tempSchemePointers);
+    schemePointers.putAll(collector.tempSchemePointers);
 
     schemeIndex.clear();
-    schemeIndex.putAll(tempSchemeIndex);
+    schemeIndex.putAll(collector.tempSchemeIndex);
 
     conceptIndex.clear();
-    conceptIndex.putAll(tempConceptIndex);
+    conceptIndex.putAll(collector.tempConceptIndex);
 
-    if (!schemePointers.equals(tempSchemePointers) ||
-        !schemeIndex.equals(tempSchemeIndex) ||
-        !conceptIndex.equals(tempConceptIndex)) {
-      logger.error("Failed transfer of content to the primary maps during reindex.");
-    }
-    tempSchemePointers = null;
-    tempSchemeIndex = null;
-    tempConceptIndex = null;
+    collector.clear();
   }
 
   private ConceptDescriptor toConceptDescriptor(ConceptDefinitionComponent cd, CodeSystem cs) {
@@ -299,4 +290,16 @@ public class TermsFHIRFacade implements TermsApiInternal {
     return conceptId(url, null, code);
   }
 
+
+  private static class Index {
+    final Map<KeyIdentifier, Pointer> tempSchemePointers = new HashMap<>();
+    final Map<KeyIdentifier, CodeSystem> tempSchemeIndex = new HashMap<>();
+    final Map<UUID, ConceptDescriptor> tempConceptIndex = new HashMap<>();
+
+    public void clear() {
+      tempConceptIndex.clear();
+      tempSchemeIndex.clear();
+      tempConceptIndex.clear();
+    }
+  }
 }
