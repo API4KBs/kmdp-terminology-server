@@ -13,8 +13,10 @@ import edu.mayo.kmdp.repository.asset.KnowledgeAssetRepositoryService;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import org.javers.core.Javers;
 import org.javers.core.JaversBuilder;
 import org.javers.core.diff.Diff;
+import org.javers.core.metamodel.clazz.EntityDefinition;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,8 @@ class TermsFHIRBasedTest {
   static TermsProvider refServer;
   static TermsFHIRFacade server;
 
+  static Javers differ;
+
   @BeforeAll
   static void init() {
     KnowledgeAssetRepositoryService kars = KnowledgeAssetRepositoryService.selfContainedRepository(
@@ -42,6 +46,12 @@ class TermsFHIRBasedTest {
     server = new TermsFHIRFacade(
         KnowledgeAssetCatalogApi.newInstance(kars),
         KnowledgeAssetRepositoryApi.newInstance(kars));
+
+    // ignore typed labels map, which is not supported by the enum-driven server
+    differ = JaversBuilder.javers()
+        .registerEntity(new EntityDefinition(
+            ConceptDescriptor.class, "uuid", Collections.singletonList("labels")))
+        .build();
   }
 
   @Test
@@ -69,18 +79,21 @@ class TermsFHIRBasedTest {
     String versionTag = "20210401";
 
     List<ConceptDescriptor> terms1 = server.getTerms(uuid, versionTag).orElseGet(Assertions::fail);
-    List<ConceptDescriptor> terms2 = refServer.getTerms(uuid, versionTag).orElseGet(Assertions::fail);
+    List<ConceptDescriptor> terms2 = refServer.getTerms(uuid, versionTag)
+        .orElseGet(Assertions::fail);
 
     assertEquals(KnowledgeAssetTypeSeries.values().length, terms1.size());
     // the legacy server indexes using both the old 'ontology' vs 'taxonomy' UUID, which predates the decision to unify the two
     assertEquals(2 * KnowledgeAssetTypeSeries.values().length, terms2.size());
 
-    ConceptDescriptor cd1 = terms1.stream().filter(cd -> cd.getUuid().equals(Assessment_Model.getUuid())).findFirst()
+    ConceptDescriptor cd1 = terms1.stream()
+        .filter(cd -> cd.getUuid().equals(Assessment_Model.getUuid())).findFirst()
         .orElseGet(Assertions::fail);
-    ConceptDescriptor cd2 = terms2.stream().filter(cd -> cd.getUuid().equals(Assessment_Model.getUuid())).findFirst()
+    ConceptDescriptor cd2 = terms2.stream()
+        .filter(cd -> cd.getUuid().equals(Assessment_Model.getUuid())).findFirst()
         .orElseGet(Assertions::fail);
 
-    Diff diff = JaversBuilder.javers().build().compare(cd1, cd2);
+    Diff diff = differ.compare(cd1, cd2);
     assertTrue(diff.getChanges().isEmpty());
   }
 
@@ -100,7 +113,7 @@ class TermsFHIRBasedTest {
     ConceptDescriptor cd2 = refServer.getTerm(uuid, versionTag, t.getUuid().toString())
         .orElseGet(Assertions::fail);
 
-    Diff diff = JaversBuilder.javers().build().compare(cd1, cd2);
+    Diff diff = differ.compare(cd1, cd2);
     assertTrue(diff.getChanges().isEmpty());
 
     assertSame(cd1, cd11);
@@ -122,7 +135,7 @@ class TermsFHIRBasedTest {
     ConceptDescriptor cd2 = refServer.lookupTerm(t.getUuid().toString())
         .orElseGet(Assertions::fail);
 
-    Diff diff = JaversBuilder.javers().build().compare(cd1, cd2);
+    Diff diff = differ.compare(cd1, cd2);
     assertTrue(diff.getChanges().isEmpty());
 
     assertSame(cd1, cd11);

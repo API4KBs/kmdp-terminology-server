@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.hl7.fhir.dstu3.model.CodeSystem;
 import org.hl7.fhir.dstu3.model.CodeSystem.ConceptDefinitionComponent;
+import org.hl7.fhir.dstu3.model.CodeSystem.ConceptDefinitionDesignationComponent;
 import org.omg.spec.api4kp._20200801.AbstractCarrier;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.repository.asset.v4.KnowledgeAssetCatalogApi;
@@ -253,7 +254,8 @@ public class TermsFHIRFacade implements TermsApiInternal {
 
   private ConceptDescriptor toConceptDescriptor(ConceptDefinitionComponent cd, CodeSystem cs) {
     ConceptDescriptor descr = new ConceptDescriptor();
-    descr.withTag(cd.getCode())
+    descr.withLabels(mapDesignations(cd))
+        .withTag(cd.getCode())
         .withResourceId(conceptId(cs.getUrl(), codeToUUID(cd.getCode()).toString()))
         .withUuid(codeToUUID(cd.getCode()))
         .withName(cd.getDisplay())
@@ -265,6 +267,13 @@ public class TermsFHIRFacade implements TermsApiInternal {
     descr.setAncestors(new Term[0]);
     descr.setClosure(new Term[0]);
     return descr;
+  }
+
+  private Map<String,String> mapDesignations(ConceptDefinitionComponent cd) {
+    return cd.getDesignation().stream()
+        .collect(Collectors.toMap(
+            dx -> dx.getUse().getCode(),
+            ConceptDefinitionDesignationComponent::getValue));
   }
 
   private UUID codeToUUID(String code) {
