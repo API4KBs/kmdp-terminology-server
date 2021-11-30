@@ -60,7 +60,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @KPComponent(implementation = "fhir")
-public class TermsFHIRFacade implements TermsApiInternal {
+public class TermsFHIRFacade implements TermsApiInternal, CompositeTermsServer {
 
   static Logger logger = LoggerFactory.getLogger(TermsFHIRFacade.class);
   static IParser fhirParser = FhirContext.forDstu3().newJsonParser();
@@ -297,6 +297,26 @@ public class TermsFHIRFacade implements TermsApiInternal {
 
   private URI conceptId(String url, String code) {
     return conceptId(url, null, code);
+  }
+
+  @Override
+  public TYPE getType() {
+    return TYPE.FHIR;
+  }
+
+  @Override
+  public String getSource() {
+    return kasrURL;
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getEnumBasedComponent() {
+    return Optional.empty();
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getFHIRBasedComponent() {
+    return Optional.of(this);
   }
 
 

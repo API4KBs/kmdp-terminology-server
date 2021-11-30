@@ -4,6 +4,7 @@ import static org.omg.spec.api4kp._20200801.Answer.firstDo;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.omg.spec.api4kp._20200801.Answer;
 import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @KPServer
 @KPComponent(implementation = "broker")
 @Component
-public class TermsBrokerImpl implements TermsApiInternal {
+public class TermsBrokerImpl implements TermsApiInternal, CompositeTermsServer {
 
   @Autowired
   @KPComponent(implementation = "enum")
@@ -71,4 +72,23 @@ public class TermsBrokerImpl implements TermsApiInternal {
         t -> t.lookupTerm(conceptId));
   }
 
+  @Override
+  public TYPE getType() {
+    return TYPE.BROKER;
+  }
+
+  @Override
+  public String getSource() {
+    return null;
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getEnumBasedComponent() {
+    return Optional.of(enumDrivenTerms);
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getFHIRBasedComponent() {
+    return Optional.of(fhirAssetDrivenTerms);
+  }
 }

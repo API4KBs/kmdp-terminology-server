@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import javax.annotation.PostConstruct;
 import org.omg.spec.api4kp._20200801.Answer;
@@ -55,13 +56,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
- *  This class reads a terminology json file created by the terminology indexer.
- *  If the tests fail, be sure to run parent build first so file is created in target/classes
- *  Terminology metadata and terms are available through services.
+ * This class reads a terminology json file created by the terminology indexer. If the tests fail,
+ * be sure to run parent build first so file is created in target/classes Terminology metadata and
+ * terms are available through services.
  */
 @Component
 @KPComponent(implementation = "enum")
-public class TermsProvider implements TermsApiInternal {
+public class TermsProvider implements TermsApiInternal, CompositeTermsServer {
 
   @Value("${terms.terminologyFile:terminologies.json}")
   protected String terminologyFile;
@@ -69,7 +70,7 @@ public class TermsProvider implements TermsApiInternal {
   static Logger logger = LoggerFactory.getLogger(TermsProvider.class);
 
   /**
-   *   A map using two keys to identify the TerminologyScheme value
+   * A map using two keys to identify the TerminologyScheme value
    */
   private Map<KeyIdentifier, TerminologyScheme> multiKeyMap;
 
@@ -86,6 +87,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Static constructor, used for testing
+   *
    * @return
    */
   public static TermsProvider newTermsProvider() {
@@ -93,7 +95,8 @@ public class TermsProvider implements TermsApiInternal {
   }
 
   /**
-   Static constructor, used for testing
+   * Static constructor, used for testing
+   *
    * @param terminologyFile
    * @return
    */
@@ -106,6 +109,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Gets a list of the terminologies as Pointers containing name and URI
+   *
    * @return a list of the terminologies
    */
   @Override
@@ -133,9 +137,10 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Get all the terms which are members of a specified version of a terminology.
+   *
    * @param vocabularyId the schemeId of the terminology
-   * @param versionTag the specific version of the terminology
-   * @param label the label of terminology
+   * @param versionTag   the specific version of the terminology
+   * @param label        the label of terminology
    * @return the terms within a specified version of terminology
    */
 
@@ -146,13 +151,14 @@ public class TermsProvider implements TermsApiInternal {
   }
 
   /**
-   * Using the vocabularyId along with the version, a Term with the given conceptId
-   * is returned.  If the term is not found, will return a status of NotFound.
+   * Using the vocabularyId along with the version, a Term with the given conceptId is returned.  If
+   * the term is not found, will return a status of NotFound.
+   *
    * @param vocabularyId - The id of the terminology system
-   * @param versionTag - The version of the terminology
-   * @param conceptId - The conceptId of the term
-   * @return retrieve a data payload that include terms, labels, definitions, relationships
-   * for the concept identified by that ID
+   * @param versionTag   - The version of the terminology
+   * @param conceptId    - The conceptId of the term
+   * @return retrieve a data payload that include terms, labels, definitions, relationships for the
+   * concept identified by that ID
    */
   @Override
   public Answer<ConceptDescriptor> getTerm(UUID vocabularyId, String versionTag, String conceptId) {
@@ -227,6 +233,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Reads the JSON file and populate the TerminologyModels
+   *
    * @return Map where id+version is the key, and TerminologyScheme is the value
    */
   private Map<KeyIdentifier, TerminologyScheme> readTerminologyJsonFileIntoTerminologyModels() {
@@ -249,16 +256,21 @@ public class TermsProvider implements TermsApiInternal {
         mkm.put(newKey(id, version), setTerminologyMetadata(terminology));
       }
     } catch (Exception e) {
-      e.printStackTrace();
-      throw new TermProviderException();
+      /*
+       * an exception will leave this terms provider in impaired state, but the enum-based
+       * provider is often used in conjunction with a fhir-based provider, where the latter
+       * is the primary provider
+       */
+      logger.error(e.getMessage(), e);
     }
 
     return mkm;
   }
 
   /**
-   * Set the terminology map using the terminologyId and version as keys.
-   * Set the terms for the terminology.
+   * Set the terminology map using the terminologyId and version as keys. Set the terms for the
+   * terminology.
+   *
    * @param terminology the TerminologyScheme to be populated
    */
   private static TerminologyScheme setTerminologyMetadata(TerminologyScheme terminology)
@@ -279,6 +291,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Uses reflection to retrieve the terms from the terminology Class.
+   *
    * @param terminologyScheme the terminologyScheme
    * @return the terms for the terminology
    */
@@ -302,8 +315,8 @@ public class TermsProvider implements TermsApiInternal {
    * Determines if two concepts are related - default by subsumption (isA)
    *
    * @param vocabularyId - The id of the terminology system
-   * @param versionTag - The version of the terminology
-   * @param conceptId - The conceptId of the term
+   * @param versionTag   - The version of the terminology
+   * @param conceptId    - The conceptId of the term
    * @return a list of any ancestors
    */
   @Override
@@ -315,9 +328,10 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Finds out if a concept is an ancestor of another concept
-   * @param vocabularyId - The id of the terminology system
-   * @param versionTag - the tag for the terminology
-   * @param conceptId - the id of the concept who is looking to find if another is an ancestor
+   *
+   * @param vocabularyId  - The id of the terminology system
+   * @param versionTag    - the tag for the terminology
+   * @param conceptId     - the id of the concept who is looking to find if another is an ancestor
    * @param testConceptId - the id of the possible ancestor
    * @return a boolean indicating if the testConceptId is an ancestor
    */
@@ -338,6 +352,7 @@ public class TermsProvider implements TermsApiInternal {
 
   /**
    * Converts an array of Terms to a List of ConceptDescriptors
+   *
    * @param terms the array of Terms
    * @return the List of ConceptDescriptors
    */
@@ -356,11 +371,11 @@ public class TermsProvider implements TermsApiInternal {
 
 
   /**
-   * Returns a representation of this version of the vocabulary.
-   * Supports content negotiation to handle e.g. RDF vs FHIR
+   * Returns a representation of this version of the vocabulary. Supports content negotiation to
+   * handle e.g. RDF vs FHIR
    *
    * @param vocabularyId - The id of the terminology system
-   * @param versionTag - The version of the terminology
+   * @param versionTag   - The version of the terminology
    * @param xAccept
    * @return
    */
@@ -372,18 +387,38 @@ public class TermsProvider implements TermsApiInternal {
 
 
   /**
-   * Resolves a concept (expression) within a terminology system
-   * Determines is a concept is a member of this vocabulary.
-   * Implementations depend on whether the vocabulary is enumerated, vs having
-   * a computable definition.
-   * The client can provide either a concept identifier, or a post-coordinated expression
-   * @param vocabularyId - The id of the terminology system
-   * @param versionTag - The version of the terminology
+   * Resolves a concept (expression) within a terminology system Determines is a concept is a member
+   * of this vocabulary. Implementations depend on whether the vocabulary is enumerated, vs having a
+   * computable definition. The client can provide either a concept identifier, or a
+   * post-coordinated expression
+   *
+   * @param vocabularyId      - The id of the terminology system
+   * @param versionTag        - The version of the terminology
    * @param conceptExpression
    * @return
    */
   @Override
   public Answer<Void> isMember(UUID vocabularyId, String versionTag, String conceptExpression) {
     return Answer.unsupported();
+  }
+
+  @Override
+  public TYPE getType() {
+    return TYPE.ENUM;
+  }
+
+  @Override
+  public String getSource() {
+    return terminologyFile;
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getEnumBasedComponent() {
+    return Optional.of(this);
+  }
+
+  @Override
+  public Optional<TermsApiInternal> getFHIRBasedComponent() {
+    return Optional.empty();
   }
 }
