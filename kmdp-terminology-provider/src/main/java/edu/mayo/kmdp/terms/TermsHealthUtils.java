@@ -86,13 +86,7 @@ public class TermsHealthUtils {
    * @return an {@link ApplicationComponent} that describes the health status of the server
    */
   private static ApplicationComponent diagnoseEnumBased(TermsApiInternal terms) {
-    ApplicationComponent c = new ApplicationComponent();
-    c.setName("Enum Based Terminology Provider");
-
-    addDetails(terms, c);
-
-    assessStatus(terms, c);
-    return c;
+    return diagnoseGeneric(terms, "Enum Based Terminology Provider");
   }
 
   /**
@@ -100,8 +94,19 @@ public class TermsHealthUtils {
    * @return an {@link ApplicationComponent} that describes the health status of the server
    */
   private static ApplicationComponent diagnoseFhirBased(TermsApiInternal terms) {
+    return diagnoseGeneric(terms, "FHIR Based Terminology Provider");
+  }
+
+  /**
+   * Generic diagnosis method for Terminology Providers
+   *
+   * @param terms a Terminology Provider
+   * @param name  the name of the Terminology Provider
+   * @return an {@link ApplicationComponent} that describes the health status of the server
+   */
+  private static ApplicationComponent diagnoseGeneric(TermsApiInternal terms, String name) {
     ApplicationComponent c = new ApplicationComponent();
-    c.setName("FHIR Based Terminology Provider");
+    c.setName(name);
 
     addDetails(terms, c);
 

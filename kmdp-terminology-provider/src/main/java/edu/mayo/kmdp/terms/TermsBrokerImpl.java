@@ -22,11 +22,11 @@ public class TermsBrokerImpl implements TermsApiInternal, CompositeTermsServer {
 
   @Autowired
   @KPComponent(implementation = "enum")
-  TermsApiInternal enumDrivenTerms;
+  protected TermsApiInternal enumDrivenTerms;
 
   @Autowired
   @KPComponent(implementation = "fhir")
-  TermsApiInternal fhirAssetDrivenTerms;
+  protected TermsApiInternal fhirAssetDrivenTerms;
 
   public TermsBrokerImpl() {
     //

@@ -70,7 +70,7 @@ public class TermsFHIRFacade implements TermsApiInternal, CompositeTermsServer {
 
   protected KnowledgeAssetCatalogApi cat;
   protected KnowledgeAssetRepositoryApi repo;
-  boolean online;
+  protected boolean online;
 
   private final Map<KeyIdentifier, Pointer> schemePointers = new HashMap<>();
   private final Map<KeyIdentifier, CodeSystem> schemeIndex = new HashMap<>();
