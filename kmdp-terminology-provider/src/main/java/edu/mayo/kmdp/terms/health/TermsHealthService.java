@@ -7,6 +7,7 @@ import edu.mayo.kmdp.health.service.HealthService;
 import edu.mayo.kmdp.health.utils.MonitorUtil;
 import edu.mayo.kmdp.terms.CompositeTermsServer;
 import edu.mayo.kmdp.terms.CompositeTermsServer.TYPE;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.omg.spec.api4kp._20200801.Answer;
@@ -15,12 +16,13 @@ import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 /**
  * A {@link edu.mayo.kmdp.health.service.HealthService} that interrogates a TermsApiInternal
- * implementation for the purpose of determining if it is available and functioning as expected (ie:
- * UP, DOWN, or IMPAIRED).
+ * implementation for the purpose of determining if it (and possibly its subcomponents) are
+ * available and functioning as expected (ie: UP, DOWN, or IMPAIRED).
  */
 @Service
 public class TermsHealthService implements HealthService {
@@ -115,7 +117,7 @@ public class TermsHealthService implements HealthService {
         .ifPresent(
             enumTerms -> applicationComponent.addComponentsItem(diagnoseEnumBased(enumTerms)));
 
-    if (applicationComponent.getComponents().isEmpty()) {
+    if (CollectionUtils.isEmpty(applicationComponent.getComponents())) {
 
       applicationComponent.setStatus(Status.IMPAIRED);
       applicationComponent.setStatusMessage(TERMINOLOGY_BROKER_HAS_NO_COMPONENTS);
@@ -164,7 +166,7 @@ public class TermsHealthService implements HealthService {
 
     Answer<List<Pointer>> terminologies = termsApiInternal.listTerminologies();
 
-    if (terminologies.isFailure()) {
+    if (terminologies == null || terminologies.isFailure()) {
 
       applicationComponent.setStatus(Status.IMPAIRED);
       applicationComponent.setStatusMessage(
@@ -178,9 +180,11 @@ public class TermsHealthService implements HealthService {
     } else {
 
       applicationComponent.setStatus(Status.UP);
+
       String statusMessage = ACTIVE_VOCABULARIES + terminologies.get().stream()
           .map(ResourceIdentifier::getTag)
           .collect(Collectors.joining(DELIMITER));
+
       applicationComponent.setStatusMessage(statusMessage);
 
     }
