@@ -34,10 +34,9 @@ public class TermsHealthService implements HealthService {
   public static final String ACTIVE_VOCABULARIES = "Active vocabularies: ";
   public static final String NO_TERMINOLOGIES_AVAILABLE = "No Terminologies available";
   public static final String COMPOSITE_TERMINOLOGY_PROVIDER = "Composite Terminology Provider";
-  public static final String UNABLE_TO_ACCESS_VOCABULARIES = "Unable to access vocabularies : ";
+  public static final String UNABLE_TO_ACCESS_VOCABULARIES = "Unable to access vocabularies";
   public static final String ENUM_BASED_TERMINOLOGY_PROVIDER = "Enum Based Terminology Provider";
   public static final String FHIR_BASED_TERMINOLOGY_PROVIDER = "FHIR Based Terminology Provider";
-  public static final String NO_TERMINOLOGY_PROVIDER_AVAILABLE = "No Terminology Provider Available";
   public static final String TERMINOLOGY_BROKER_HAS_NO_COMPONENTS = "Terminology Broker has NO components";
 
   protected TermsApiInternal termsApiInternal;
@@ -124,6 +123,7 @@ public class TermsHealthService implements HealthService {
 
     } else {
 
+      applicationComponent.setStatusMessage(null);
       applicationComponent.setStatus(
           MonitorUtil.defaultAggregateStatus(applicationComponent.getComponents()));
 
@@ -169,8 +169,13 @@ public class TermsHealthService implements HealthService {
     if (terminologies == null || terminologies.isFailure()) {
 
       applicationComponent.setStatus(Status.IMPAIRED);
-      applicationComponent.setStatusMessage(
-          UNABLE_TO_ACCESS_VOCABULARIES + terminologies.printExplanation());
+
+      String message = UNABLE_TO_ACCESS_VOCABULARIES;
+      if (terminologies != null) {
+        message = message + ": " + terminologies.printExplanation();
+      }
+
+      applicationComponent.setStatusMessage(message);
 
     } else if (terminologies.get().isEmpty()) {
 
