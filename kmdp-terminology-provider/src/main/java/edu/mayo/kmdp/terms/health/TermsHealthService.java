@@ -7,7 +7,6 @@ import edu.mayo.kmdp.health.service.HealthService;
 import edu.mayo.kmdp.health.utils.MonitorUtil;
 import edu.mayo.kmdp.terms.CompositeTermsServer;
 import edu.mayo.kmdp.terms.CompositeTermsServer.TYPE;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.omg.spec.api4kp._20200801.Answer;
@@ -15,7 +14,6 @@ import org.omg.spec.api4kp._20200801.api.terminology.v4.server.TermsApiInternal;
 import org.omg.spec.api4kp._20200801.id.Pointer;
 import org.omg.spec.api4kp._20200801.id.ResourceIdentifier;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
@@ -24,7 +22,6 @@ import org.springframework.util.StopWatch;
  * implementation for the purpose of determining if it (and possibly its subcomponents) are
  * available and functioning as expected (ie: UP, DOWN, or IMPAIRED).
  */
-@Service
 public class TermsHealthService implements HealthService {
 
   public static final String DELIMITER = ",";

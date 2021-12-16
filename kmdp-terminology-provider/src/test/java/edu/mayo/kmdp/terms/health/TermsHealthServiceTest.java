@@ -1,7 +1,5 @@
 package edu.mayo.kmdp.terms.health;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import edu.mayo.kmdp.health.datatype.ApplicationComponent;
@@ -45,8 +43,6 @@ class TermsHealthServiceTest {
         applicationComponent.getDetails().get(HealthService.EXECUTION_TIME_MS));
     Assertions.assertEquals(TermsHealthService.ACTIVE_VOCABULARIES + TAG_1,
         applicationComponent.getStatusMessage());
-    Assertions.assertNotNull(
-        applicationComponent.getDetails().get(HealthService.EXECUTION_TIME_MS));
 
   }
 
