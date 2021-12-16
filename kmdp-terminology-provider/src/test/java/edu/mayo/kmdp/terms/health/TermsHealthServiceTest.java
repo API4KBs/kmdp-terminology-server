@@ -202,4 +202,21 @@ class TermsHealthServiceTest {
 
   }
 
+  @Test
+  void testException() {
+
+    TermsApiInternal termsApiInternal = Mockito.mock(TermsApiInternal.class);
+    when(termsApiInternal.listTerminologies()).thenThrow(new RuntimeException("Some exception occurred"));
+
+    TermsHealthService termsHealthService = new TermsHealthService(termsApiInternal);
+
+    ApplicationComponent applicationComponent = termsHealthService.assessHealth();
+
+    Assertions.assertEquals(Status.DOWN, applicationComponent.getStatus());
+    Assertions.assertNotNull(
+        applicationComponent.getDetails().get(HealthService.EXECUTION_TIME_MS));
+    Assertions.assertEquals("Unable to interrogate, exception: 'Some exception occurred'", applicationComponent.getStatusMessage());
+
+  }
+
 }

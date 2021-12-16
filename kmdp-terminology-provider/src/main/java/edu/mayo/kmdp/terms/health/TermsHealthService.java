@@ -181,13 +181,13 @@ public class TermsHealthService implements HealthService {
 
     } else {
 
-      applicationComponent.setStatus(Status.UP);
-
       String statusMessage = ACTIVE_VOCABULARIES + terminologies.get().stream()
           .map(ResourceIdentifier::getTag)
           .collect(Collectors.joining(DELIMITER));
 
       applicationComponent.setStatusMessage(statusMessage);
+
+      applicationComponent.setStatus(Status.UP);
 
     }
 
