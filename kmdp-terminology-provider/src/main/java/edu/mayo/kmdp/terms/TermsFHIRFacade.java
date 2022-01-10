@@ -20,7 +20,6 @@ import static org.omg.spec.api4kp._20200801.id.SemanticIdentifier.newKey;
 import static org.omg.spec.api4kp._20200801.taxonomy.krlanguage.KnowledgeRepresentationLanguageSeries.FHIR_STU3;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
 import edu.mayo.kmdp.util.DateTimeUtil;
 import edu.mayo.kmdp.util.NameUtils;
 import edu.mayo.kmdp.util.URIUtil;
@@ -63,7 +62,7 @@ import org.springframework.stereotype.Component;
 public class TermsFHIRFacade implements TermsApiInternal, CompositeTermsServer {
 
   static Logger logger = LoggerFactory.getLogger(TermsFHIRFacade.class);
-  static IParser fhirParser = FhirContext.forDstu3().newJsonParser();
+  static FhirContext fhirContext = FhirContext.forDstu3();
 
   @Value("${edu.mayo.kmdp.kasrs.repository.defaultRepoUrl:http://localhost:8080/kar}")
   protected String kasrURL;
@@ -213,7 +212,7 @@ public class TermsFHIRFacade implements TermsApiInternal, CompositeTermsServer {
           codedRep(FHIR_STU3))
           .flatOpt(AbstractCarrier::asBinary)
           .map(ByteArrayInputStream::new)
-          .map(bais -> fhirParser.parseResource(CodeSystem.class, bais))
+          .map(bais -> fhirContext.newJsonParser().parseResource(CodeSystem.class, bais))
           .getOptionalValue();
     } else {
       return asset.getCarriers().stream()
@@ -236,7 +235,7 @@ public class TermsFHIRFacade implements TermsApiInternal, CompositeTermsServer {
         codedRep(FHIR_STU3))
         .flatOpt(AbstractCarrier::asBinary)
         .map(ByteArrayInputStream::new)
-        .map(bais -> fhirParser.parseResource(CodeSystem.class, bais));
+        .map(bais -> fhirContext.newJsonParser().parseResource(CodeSystem.class, bais));
   }
 
   private synchronized void transferContentToPrimary(Index collector) {
