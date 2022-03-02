@@ -19,7 +19,6 @@ import static edu.mayo.kmdp.util.Util.uuid;
 import static org.omg.spec.api4kp._20200801.id.SemanticIdentifier.newKey;
 
 import edu.mayo.kmdp.comparator.Contrastor.Comparison;
-import edu.mayo.kmdp.terms.exceptions.TermProviderException;
 import edu.mayo.kmdp.terms.impl.model.TerminologyScheme;
 import edu.mayo.kmdp.util.NameUtils;
 import edu.mayo.kmdp.util.Util;
@@ -241,10 +240,13 @@ public class TermsProvider implements TermsApiInternal, CompositeTermsServer {
 
     try {
       // json file is stored in the classes directory during the build
-      TerminologyScheme[] terminologies = readJson(
-          TermsProvider.class.getResourceAsStream("/" + terminologyFile),
-          TerminologyScheme[].class)
-          .orElseThrow(TermProviderException::new);
+      TerminologyScheme[] terminologies =
+          Optional.ofNullable(TermsProvider.class.getResourceAsStream("/" + terminologyFile))
+              .flatMap(is -> readJson(is, TerminologyScheme[].class))
+              .orElseGet(() -> {
+                logger.warn("Unable to load terminologies from index file {}", terminologyFile);
+                return new TerminologyScheme[0];
+              });
 
       // for each terminology, set the metadata and terms
       for (TerminologyScheme terminology : terminologies) {
